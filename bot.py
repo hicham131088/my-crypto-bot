@@ -31,9 +31,9 @@ def get_full_market_list():
         'TIAUSDT', 'STXUSDT', 'FILUSDT', 'LDOUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 
         'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'EGLDUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT',
         'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'BEAMUSDT', 'GALAUSDT', 'JUPUSDT', 'PYTHUSDT', 'DYMUSDT',
-        'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'OPUSDT', 'ENSUSDT', 'CRVUSDT', 'WLDUSDT',
-        'ARKMUSDT', 'IDUSDT', 'PIXELUSDT', 'STRKUSDT', 'PORTALUSDT', 'ENAUSDT', 'WUSDT', 'TNSRUSDT',
-        'SAGAUSDT', 'TAOUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'LISTAUSDT', 'DOGSUSDT'
+        'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'ENSUSDT', 'CRVUSDT', 'WLDUSDT', 'ARKMUSDT',
+        'IDUSDT', 'PIXELUSDT', 'STRKUSDT', 'PORTALUSDT', 'ENAUSDT', 'WUSDT', 'TNSRUSDT', 'SAGAUSDT',
+        'TAOUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'LISTAUSDT', 'DOGSUSDT'
     ]
 
 def run_radar():
@@ -45,7 +45,8 @@ def run_radar():
         if btc.empty: return
             
         btc_change = ((btc['c'].iloc[-1] - btc['c'].iloc[-2]) / btc['c'].iloc[-2]) * 100
-        if btc_change < 0:
+        # تعديل بسيط ليكون أكثر مرونة مع تذبذب البيتكوين
+        if btc_change < -0.15:
             print(f"🛑 اتجاه البيتكوين سلبي ({btc_change:.2f}%). تم إيقاف المسح.")
             return
 
@@ -59,31 +60,41 @@ def run_radar():
         for s in all_symbols:
             df = get_data(s)
             
-            # --- فلتر السيولة الآلي ---
-            # البوت يحلل فقط العملات التي تداولها في آخر 30 دقيقة > 200,000$
-            if not df.empty and len(df) >= 40:
+            # التأكد من وجود بيانات كافية وتنظيفها من القيم الفارغة
+            if not df.empty and len(df) >= 50:
+                df = df.dropna()
+                
+                # فلتر السيولة: تداول آخر شمعة > 200,000$
                 volume_usd = df['v'].iloc[-1] * df['c'].iloc[-1]
                 if volume_usd < 200000: 
                     continue
                 
-                # حساب المؤشرات الفنية
-                m = df.ta.macd(close='c')
-                ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
-                cp = df['c'].iloc[-1]
-                
-                # شرط الدخول
-                if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                    send_msg(f"🚀 **إشارة دخول قوية: {s}**\n💰 السعر: {cp:.4f}\n📊 سيولة الشمعة: ${volume_usd:,.0f}\n📈 اتجاه BTC: {btc_change:.2f}%")
-                    found += 1
+                try:
+                    # حساب المؤشرات الفنية
+                    m = df.ta.macd(close='c')
+                    # استخدام 'D' كبيرة لتجنب تحذيرات Pandas في السجلات
+                    ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
+                    
+                    if m is None or ic is None: continue
+                    
+                    cp = df['c'].iloc[-1]
+                    
+                    # شرط الدخول: تقاطع MACD + السعر فوق السحابة
+                    if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
+                        send_msg(f"🚀 **إشارة دخول قوية: {s}**\n💰 السعر: {cp:.4f}\n📊 سيولة الشمعة: ${volume_usd:,.0f}\n📈 اتجاه BTC: {btc_change:.2f}%")
+                        found += 1
+                except:
+                    # في حال حدوث خطأ في عملة واحدة، يكمل البوت فحص الباقي
+                    continue
             
-            time.sleep(0.2) # تأخير بسيط لضمان استقرار الطلبات
+            time.sleep(0.1) 
             
         print(f"🏁 اكتمل المسح الشامل. تم العثور على {found} فرصة.")
     except Exception as e:
-        print(f"⚠️ خطأ: {e}")
+        print(f"⚠️ خطأ عام في الدورة: {e}")
 
 # رسالة تأكيد البدء
-send_msg("🤖 رادار المسح الشامل لجميع العملات (نسخة TradingView) يعمل الآن.")
+send_msg("🤖 رادار المسح الشامل (النسخة المستقرة) بدأ العمل الآن.")
 
 # --- نظام النبض (Pulse) ثابت لضمان عمل السيرفر ---
 last_pulse = -1
