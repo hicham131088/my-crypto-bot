@@ -17,7 +17,7 @@ def get_data(symbol):
         ticker = yf.Ticker(yf_symbol)
         df = ticker.history(period="5d", interval="30m")
         if not df.empty:
-            df = df.rename(columns={'Open':'o', 'High':'h', 'Low':'l', 'Close':'c', 'Volume':'v'})
+            # لم نعد نغير أسماء الأعمدة يدوياً لتوافق المكتبة الفنية
             return df
     except: pass
     return pd.DataFrame()
@@ -34,49 +34,50 @@ def get_full_market_list():
 def run_radar():
     print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح")
     try:
-        # 1. فحص زخم البيتكوين باستخدام EMA 50
         btc = get_data('BTCUSDT')
         if btc.empty or len(btc) < 50: 
-            print("❌ فشل جلب بيانات البيتكوين.")
+            print("❌ نقص في بيانات البيتكوين.")
             return
         
-        # حساب EMA 50
-        btc_ema50 = btc.ta.ema(length=50)
-        current_btc_price = btc['c'].iloc[-1]
-        last_ema50 = btc_ema50.iloc[-1]
+        # حساب EMA 50 للبيتكوين
+        ema50 = btc.ta.ema(length=50)
+        current_btc = btc['Close'].iloc[-1]
+        last_ema50 = ema50.iloc[-1]
         
-        if current_btc_price > last_ema50:
-            print(f"✅ البيتكوين فوق EMA 50 (Price: {current_btc_price:.0f} > EMA: {last_ema50:.0f}). استكمال التحليل...")
+        # شرط الزخم الصاعد (EMA 50)
+        if current_btc > last_ema50:
+            print(f"✅ زخم صاعد (BTC: {current_btc:.0f} > EMA: {last_ema50:.0f})")
         else:
-            print(f"🛑 البيتكوين تحت EMA 50 (Price: {current_btc_price:.0f} < EMA: {last_ema50:.0f}). إنهاء التحليل.")
+            print(f"🛑 زخم هابط (BTC: {current_btc:.0f} < EMA: {last_ema50:.0f}).")
             return
 
-        # باقي الكود كما هو بدون أي تغيير
         all_symbols = get_full_market_list()
         found = 0
         for s in all_symbols:
             df = get_data(s)
             if not df.empty and len(df) >= 50:
                 df = df.dropna()
-                volume_usd = df['v'].iloc[-1] * df['c'].iloc[-1]
+                # فلتر السيولة (200 ألف دولار)
+                volume_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
                 if volume_usd < 200000: continue
                 
                 try:
-                    m = df.ta.macd(close='c')
-                    ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
-                    if m is None or ic is None: continue
+                    # التحليل الفني (بدون تغيير المنطق)
+                    m = df.ta.macd()
+                    ic = df.ta.ichimoku()[0]
+                    cp = df['Close'].iloc[-1]
                     
-                    cp = df['c'].iloc[-1]
+                    # التقاطع الإيجابي + فوق السحابة
                     if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                        send_msg(f"🚀 **إشارة دخول قوية: {s}**\n💰 السعر: {cp:.4f}\n📈 وضع BTC: زخم صاعد")
+                        send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 وضع السوق: صاعد (EMA 50)")
                         found += 1
                 except: continue
             time.sleep(0.1)
-        print(f"🏁 اكتمل المسح. الإشارات: {found}")
+        print(f"🏁 اكتمل. الإشارات: {found}")
     except Exception as e:
         print(f"⚠️ خطأ عام: {e}")
 
-send_msg("📡 تحديث: البوت سيفحص الآن إذا كان BTC فوق EMA 50 قبل بدء أي مسح.")
+send_msg("📡 تحديث: تم تصحيح أخطاء البيانات وتفعيل فلتر EMA 50 للبيتكوين.")
 
 last_pulse = -1
 while True:
