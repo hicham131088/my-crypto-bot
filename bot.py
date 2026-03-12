@@ -1,17 +1,9 @@
-import time, requests, pandas as pd, pandas_ta as ta
+import time, requests, pandas as pd, pandas_ta as ta, yfinance as yf
 from datetime import datetime
-from tvdatafeed import TvDatafeed, Interval
 
 # --- الإعدادات ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
 CHAT_ID = '6424409099'
-
-# الاتصال بمحرك TradingView (بدون تسجيل دخول لضمان الاستقرار)
-try:
-    tv = TvDatafeed()
-    print("✅ تم تشغيل محرك TradingView بنجاح")
-except Exception as e:
-    print(f"❌ فشل تشغيل المحرك: {e}")
 
 def send_msg(text):
     try:
@@ -21,54 +13,61 @@ def send_msg(text):
 
 def get_data(symbol):
     try:
-        # جلب البيانات من TradingView (حل مشكلة حظر IP بينا نص)
-        df = tv.get_hist(symbol=symbol, exchange='BINANCE', interval=Interval.in_30_minute, n_bars=100)
-        if df is not None and not df.empty:
-            df = df.rename(columns={'open':'o', 'high':'h', 'low':'l', 'close':'c', 'volume':'v'})
+        # تحويل اسم العملة ليتوافق مع Yahoo Finance (مثلاً BTC-USD)
+        yf_symbol = symbol.replace('USDT', '-USD')
+        # جلب البيانات (فريم 30 دقيقة)
+        ticker = yf.Ticker(yf_symbol)
+        df = ticker.history(period="5d", interval="30m")
+        
+        if not df.empty:
+            # إعادة تسمية الأعمدة لتناسب الكود السابق
+            df = df.rename(columns={'Open':'o', 'High':'h', 'Low':'l', 'Close':'c', 'Volume':'v'})
             return df
-    except: pass
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب {symbol}: {e}")
     return pd.DataFrame()
 
 def run_radar():
-    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء دورة التحليل عبر TradingView")
+    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء دورة التحليل (YFinance Mode)")
     try:
-        # 1. فحص البيتكوين
+        # 1. تحليل البيتكوين
         btc = get_data('BTCUSDT')
         if btc.empty:
-            print("❌ لا توجد بيانات. ربما هناك مشكلة في اتصال السيرفر بـ TradingView.")
+            print("❌ تعذر جلب بيانات السوق حالياً.")
             return
             
         btc_change = ((btc['c'].iloc[-1] - btc['c'].iloc[-2]) / btc['c'].iloc[-2]) * 100
         print(f"📊 اتجاه البيتكوين: {btc_change:.2f}%")
 
         if btc_change < 0:
-            print("🛑 السوق هابط. سأنتظر الدورة القادمة.")
+            print("🛑 السوق هابط، تم إيقاف الفحص.")
             return
 
-        # 2. قائمة العملات المختارة (أقوى العملات حالياً)
-        symbols = ['ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'AVAXUSDT', 'NEARUSDT', 'FETUSDT', 'SUIUSDT', 'PEPEUSDT']
+        # 2. قائمة العملات للمراقبة
+        top_symbols = ['ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'AVAXUSDT', 'NEARUSDT', 'FETUSDT', 'SUIUSDT', 'PEPEUSDT']
         
         # 3. الفحص الفني
         found = 0
-        for s in symbols:
+        for s in top_symbols:
             df = get_data(s)
             if not df.empty and len(df) >= 50:
-                m = df.ta.macd(close='c')
-                ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
+                # حساب المؤشرات (MACD + Ichimoku)
+                macd = df.ta.macd(close='c')
+                ichi = df.ta.ichimoku(high='h', low='l', close='c')[0]
                 cp = df['c'].iloc[-1]
                 
-                # استراتيجية التقاطع (MACD + Ichimoku)
-                if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                    send_msg(f"🚀 **إشارة TradingView: {s}**\n💰 السعر: {cp}\n📈 اتجاه BTC: {btc_change:.2f}%")
+                # شرط الدخول: السعر فوق السحابة + تقاطع MACD إيجابي
+                if macd.iloc[-1][0] > macd.iloc[-1][2] and cp > ichi['ISA_9'].iloc[-1] and cp > ichi['ISB_26'].iloc[-1]:
+                    send_msg(f"🚀 **إشارة دخول قوية: {s}**\n💰 السعر: {cp:.4f}\n📈 اتجاه BTC: {btc_change:.2f}%")
                     found += 1
-            time.sleep(1) # لضمان عدم حظر الطلبات
+            time.sleep(1) # لتجنب الضغط على السيرفر
         
-        print(f"🏁 اكتمل التحليل. الإشارات: {found}")
+        print(f"🏁 اكتمل التحليل. الإشارات المرسلة: {found}")
     except Exception as e:
-        print(f"⚠️ خطأ أثناء التشغيل: {e}")
+        print(f"⚠️ خطأ عام: {e}")
 
-# التنبيه ببدء التشغيل
-send_msg("📡 البوت يعمل الآن باستخدام بيانات TradingView لتجاوز الحظر.")
+# تنبيه البدء
+send_msg("📡 البوت يعمل الآن بنظام YFinance المستقر 100%.")
 
 last_pulse = -1
 while True:
