@@ -1,4 +1,3 @@
-pandas==2.2.2
-pandas_ta==0.3.14b0
-requests==2.31.0
-tvdatafeed @ git+https://github.com/aliiranshah/tvdatafeed.git
+pandas
+pandas_ta
+yfinance
