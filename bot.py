@@ -15,7 +15,7 @@ def get_data(symbol):
     try:
         yf_symbol = symbol.replace('USDT', '-USD')
         ticker = yf.Ticker(yf_symbol)
-        df = ticker.history(period="3d", interval="30m")
+        df = ticker.history(period="5d", interval="30m")
         if not df.empty:
             df = df.rename(columns={'Open':'o', 'High':'h', 'Low':'l', 'Close':'c', 'Volume':'v'})
             return df
@@ -23,7 +23,6 @@ def get_data(symbol):
     return pd.DataFrame()
 
 def get_full_market_list():
-    """قائمة شاملة تضم عملات بينانس المتاحة على TradingView"""
     return [
         'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT',
         'DOGEUSDT', 'LINKUSDT', 'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT',
@@ -33,47 +32,51 @@ def get_full_market_list():
     ]
 
 def run_radar():
-    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح الشامل")
+    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح")
     try:
-        # 1. شرط البيتكوين
+        # 1. فحص زخم البيتكوين باستخدام EMA 50
         btc = get_data('BTCUSDT')
-        if btc.empty: return
-        btc_change = ((btc['c'].iloc[-1] - btc['c'].iloc[-2]) / btc['c'].iloc[-2]) * 100
+        if btc.empty or len(btc) < 50: 
+            print("❌ فشل جلب بيانات البيتكوين.")
+            return
         
-        if btc_change < -0.15:
-            print(f"🛑 البيتكوين سلبي ({btc_change:.2f}%).")
+        # حساب EMA 50
+        btc_ema50 = btc.ta.ema(length=50)
+        current_btc_price = btc['c'].iloc[-1]
+        last_ema50 = btc_ema50.iloc[-1]
+        
+        if current_btc_price > last_ema50:
+            print(f"✅ البيتكوين فوق EMA 50 (Price: {current_btc_price:.0f} > EMA: {last_ema50:.0f}). استكمال التحليل...")
+        else:
+            print(f"🛑 البيتكوين تحت EMA 50 (Price: {current_btc_price:.0f} < EMA: {last_ema50:.0f}). إنهاء التحليل.")
             return
 
+        # باقي الكود كما هو بدون أي تغيير
         all_symbols = get_full_market_list()
-        print(f"⏳ [3/4] جاري فلترة {len(all_symbols)} عملة...")
-
         found = 0
         for s in all_symbols:
             df = get_data(s)
             if not df.empty and len(df) >= 50:
                 df = df.dropna()
                 volume_usd = df['v'].iloc[-1] * df['c'].iloc[-1]
-                
                 if volume_usd < 200000: continue
                 
                 try:
                     m = df.ta.macd(close='c')
                     ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
-                    
                     if m is None or ic is None: continue
                     
                     cp = df['c'].iloc[-1]
                     if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                        send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 BTC: {btc_change:.2f}%")
+                        send_msg(f"🚀 **إشارة دخول قوية: {s}**\n💰 السعر: {cp:.4f}\n📈 وضع BTC: زخم صاعد")
                         found += 1
                 except: continue
             time.sleep(0.1)
-        print(f"🏁 اكتمل المسح. الإشارات المرسلة: {found}")
+        print(f"🏁 اكتمل المسح. الإشارات: {found}")
     except Exception as e:
         print(f"⚠️ خطأ عام: {e}")
 
-# رسالة البدء
-send_msg("📡 تم إصلاح الخطأ البرمجي.. البوت يعمل الآن بكفاءة.")
+send_msg("📡 تحديث: البوت سيفحص الآن إذا كان BTC فوق EMA 50 قبل بدء أي مسح.")
 
 last_pulse = -1
 while True:
