@@ -16,68 +16,98 @@ def get_data(symbol):
         yf_symbol = symbol.replace('USDT', '-USD')
         ticker = yf.Ticker(yf_symbol)
         df = ticker.history(period="5d", interval="30m")
-        if not df.empty:
-            # لم نعد نغير أسماء الأعمدة يدوياً لتوافق المكتبة الفنية
-            return df
+        if not df.empty: return df
     except: pass
     return pd.DataFrame()
 
 def get_full_market_list():
+    # قائمة موسعة تضم 200 عملة من الأهم والأكثر سيولة على بينانس
     return [
-        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT',
-        'DOGEUSDT', 'LINKUSDT', 'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT',
-        'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT', 'RNDRUSDT', 'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT',
-        'TIAUSDT', 'STXUSDT', 'FILUSDT', 'LDOUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 
-        'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'EGLDUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT'
+        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'DOGEUSDT', 'LINKUSDT',
+        'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT',
+        'RNDRUSDT', 'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'FILUSDT', 'LDOUSDT', 'ORDIUSDT', 'ICPUSDT',
+        'TRXUSDT', 'ETCUSDT', 'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'EGLDUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT',
+        'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'BEAMUSDT', 'GALAUSDT', 'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT',
+        'MKRUSDT', 'SNXUSDT', 'ENSUSDT', 'CRVUSDT', 'WLDUSDT', 'ARKMUSDT', 'IDUSDT', 'PIXELUSDT', 'STRKUSDT', 'PORTALUSDT',
+        'ENAUSDT', 'WUSDT', 'TNSRUSDT', 'SAGAUSDT', 'TAOUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'LISTAUSDT',
+        'DOGSUSDT', 'ASTRUSDT', 'ANKRUSDT', 'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ATAUSDT', 'ARKUSDT',
+        'ARUSDT', 'ACHUSDT', 'AUCTIONUSDT', 'BADGERUSDT', 'BAKEDUSDT', 'BALUSDT', 'BANDUSDT', 'BATUSDT', 'BELUSDT', 'BICOUSDT',
+        'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'BSVUSDT', 'C98USDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT', 'CKBUSDT', 'COMBOUSDT',
+        'COMPUSDT', 'COTIUSDT', 'CTSIUSDT', 'CYBERUSDT', 'DARUSDT', 'DASHUSDT', 'DGBUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT',
+        'ENJUSDT', 'EOSUSDT', 'ETHFIUSDT', 'FDUSDUSDT', 'FLOWUSDT', 'FORTHUSDT', 'FRONTUSDT', 'FTMUSDT', 'FXSUSDT', 'GASUSDT',
+        'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'GNSUSDT', 'HBARUSDT', 'HIGHUSDT', 'HIFIUSDT', 'HOOKUSDT', 'HOTUSDT', 'IOTAUSDT',
+        'IOTXUSDT', 'JASMYUSDT', 'JOEUSDT', 'KASUSDT', 'KAVAUSDT', 'KNCUSDT', 'KDAUSDT', 'KEYUSDT', 'KLAYUSDT', 'KNSUSDT',
+        'LINAUSDT', 'LPTUSDT', 'LQTYUSDT', 'LRCUSDT', 'LSKUSDT', 'LUMIAUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MAVIAUSDT',
+        'MBOXUSDT', 'METISUSDT', 'MINAUSDT', 'MOVRUSDT', 'MTLUSDT', 'MYROUSDT', 'NFPUSDT', 'NKNUSDT', 'NMRUSDT', 'NTRNUSDT',
+        'OGNUSDT', 'OMGUSDT', 'ONGUSDT', 'ONTUSDT', 'OXTUSDT', 'PAXGUSDT', 'PDAUSDT', 'PERPUSDT', 'PHBUSDT', 'PNUTUSDT',
+        'POLYXUSDT', 'POWRUSDT', 'PROMSUSDT', 'QNTUSDT', 'QTUMUSDT', 'QUICKUSDT', 'RADUSDT', 'RAREUSDT', 'RAYUSDT', 'REEFUSDT',
+        'REIUSDT', 'REQUSDT', 'RIFUSDT', 'RLCUSDT', 'RONINUSDT', 'ROSEUSDT', 'RPLUSDT', 'RSRUSDT', 'RUNEUSDT', 'RVNUSDT',
+        'SCRUSDT', 'SKLUSDT', 'SLPUSDT', 'SFPUSDT', 'SPELLUSDT', 'STEEMUSDT', 'STGUSDT', 'STORJUSDT', 'SUNUSDT', 'SXPUSDT'
     ]
 
 def run_radar():
-    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح")
+    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح الشامل")
     try:
+        # 1. فحص زخم البيتكوين (EMA 50)
         btc = get_data('BTCUSDT')
         if btc.empty or len(btc) < 50: 
-            print("❌ نقص في بيانات البيتكوين.")
+            print("❌ بيانات البيتكوين غير مكتملة.")
             return
         
-        # حساب EMA 50 للبيتكوين
         ema50 = btc.ta.ema(length=50)
-        current_btc = btc['Close'].iloc[-1]
-        last_ema50 = ema50.iloc[-1]
+        curr_btc = btc['Close'].iloc[-1]
+        l_ema50 = ema50.iloc[-1]
         
-        # شرط الزخم الصاعد (EMA 50)
-        if current_btc > last_ema50:
-            print(f"✅ زخم صاعد (BTC: {current_btc:.0f} > EMA: {last_ema50:.0f})")
+        if curr_btc > l_ema50:
+            print(f"✅ زخم صاعد (BTC: {curr_btc:.0f} > EMA: {l_ema50:.0f})")
         else:
-            print(f"🛑 زخم هابط (BTC: {current_btc:.0f} < EMA: {last_ema50:.0f}).")
+            print(f"🛑 زخم هابط (BTC: {curr_btc:.0f} < EMA: {l_ema50:.0f}). إنهاء المسح.")
             return
 
+        # 2. تحليل العملات مع عداد التقدم
         all_symbols = get_full_market_list()
-        found = 0
+        total_symbols = len(all_symbols)
+        found_signals = 0
+        passed_liquidity = 0
+        processed_count = 0
+
+        print(f"⏳ [3/4] جاري تحليل {total_symbols} عملة...")
+
         for s in all_symbols:
+            processed_count += 1
             df = get_data(s)
+            
             if not df.empty and len(df) >= 50:
                 df = df.dropna()
-                # فلتر السيولة (200 ألف دولار)
-                volume_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-                if volume_usd < 200000: continue
                 
-                try:
-                    # التحليل الفني (بدون تغيير المنطق)
-                    m = df.ta.macd()
-                    ic = df.ta.ichimoku()[0]
-                    cp = df['Close'].iloc[-1]
-                    
-                    # التقاطع الإيجابي + فوق السحابة
-                    if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                        send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 وضع السوق: صاعد (EMA 50)")
-                        found += 1
-                except: continue
-            time.sleep(0.1)
-        print(f"🏁 اكتمل. الإشارات: {found}")
+                # فحص السيولة (200 ألف دولار)
+                v_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
+                if v_usd >= 200000:
+                    passed_liquidity += 1
+                    try:
+                        m = df.ta.macd()
+                        ic = df.ta.ichimoku()[0] # استخدام التلقائي لتجنب التحذير
+                        cp = df['Close'].iloc[-1]
+                        
+                        # شرط الاستراتيجية
+                        if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
+                            send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 BTC: صاعد")
+                            found_signals += 1
+                    except: continue
+
+            # طباعة نسبة التقدم كل 20 عملة لتجنب ازدحام السجلات
+            if processed_count % 20 == 0 or processed_count == total_symbols:
+                percentage = (processed_count / total_symbols) * 100
+                print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
+            
+            time.sleep(0.05) # تسريع الفحص قليلاً
+
+        print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
     except Exception as e:
         print(f"⚠️ خطأ عام: {e}")
 
-send_msg("📡 تحديث: تم تصحيح أخطاء البيانات وتفعيل فلتر EMA 50 للبيتكوين.")
+# رسالة البدء
+send_msg("📡 رادار الـ 200 عملة يعمل الآن بنظام الـ EMA 50.")
 
 last_pulse = -1
 while True:
