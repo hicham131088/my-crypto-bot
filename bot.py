@@ -1,17 +1,13 @@
-import os, time, requests, pandas as pd, pandas_ta as ta, ccxt
+import time, requests, pandas as pd, pandas_ta as ta
 from datetime import datetime
+from tvdatafeed import TvDatafeed, Interval
 
-# --- الإعدادات ---
+# --- الإعدادات الأساسية ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
 CHAT_ID = '6424409099'
-API_KEY = 'QSooAvoTOq2v4YYhG9J3rZa7Xk0AaHLY0xKZsYaTtdFC2LhPlSiRU5cGWGrxKL4X'
 
-# إعداد المحرك للعمل على سوق العقود الآجلة (أحياناً يتجاوز حظر السبوت)
-exchange = ccxt.binance({
-    'apiKey': API_KEY,
-    'enableRateLimit': True,
-    'options': {'defaultType': 'future'} 
-})
+# الاتصال بمحرك TradingView (لا يحتاج مفاتيح API لبيانات Binance العامة)
+tv = TvDatafeed()
 
 def send_msg(text):
     try:
@@ -21,23 +17,24 @@ def send_msg(text):
 
 def get_data(symbol):
     try:
-        # محاولة جلب البيانات (استخدام صيغة BTC/USDT لـ CCXT)
-        bars = exchange.fetch_ohlcv(symbol, timeframe='30m', limit=100)
-        df = pd.DataFrame(bars, columns=['t', 'o', 'h', 'l', 'c', 'v'])
-        df[['h', 'l', 'c']] = df[['h', 'l', 'c']].astype(float)
-        return df
-    except Exception as e:
-        return pd.DataFrame()
+        # جلب البيانات من سيرفرات TradingView لتجاوز حظر Railway
+        df = tv.get_hist(symbol=symbol, exchange='BINANCE', interval=Interval.in_30_minute, n_bars=100)
+        if df is not None and not df.empty:
+            # إعادة تسمية الأعمدة لتتوافق مع الكود السابق
+            df = df.rename(columns={'open':'o', 'high':'h', 'low':'l', 'close':'c', 'volume':'v'})
+            return df
+    except:
+        pass
+    return pd.DataFrame()
 
 def run_radar():
-    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء دورة التحليل (Ultimate Mode)")
+    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء دورة التحليل (TradingView Mode)")
     try:
         # 1. تحليل البيتكوين
-        print("⏳ [2/4] (25%) | فحص البيتكوين عبر قنوات بديلة...")
-        btc = get_data('BTC/USDT')
-        
+        print("⏳ [2/4] (25%) | فحص البيتكوين عبر TradingView...")
+        btc = get_data('BTCUSDT')
         if btc.empty:
-            print("❌ لا يزال الجدار قائماً. سأحاول تغيير بروتوكول الاتصال في المرة القادمة.")
+            print("❌ فشل جلب بيانات البيتكوين من TradingView. تأكد من إعدادات المكتبة.")
             return
             
         btc_change = ((btc['c'].iloc[-1] - btc['c'].iloc[-2]) / btc['c'].iloc[-2]) * 100
@@ -45,36 +42,38 @@ def run_radar():
         print(f"📊 نتيجة البيتكوين: {status} ({btc_change:.2f}%)")
 
         if btc_change < 0:
-            print(f"🛑 حماية: الاتجاه سلبي حالياً. تم إنهاء التحليل.")
+            print(f"🛑 الاتجاه سلبي. تم إيقاف الدورة.")
             return
 
-        # 2. تحليل السيولة
-        print("⏳ [3/4] (50%) | فحص سيولة العملات...")
-        tickers = exchange.fetch_tickers()
-        # اختيار العملات التي تزيد سيولتها عن 20 مليون
-        valid = [s for s, t in tickers.items() if s.endswith('/USDT') and t.get('quoteVolume', 0) > 20000000]
-        print(f"✅ تم إيجاد {len(valid)} عملة نشطة.")
-
+        # 2. جلب العملات المرشحة (بسبب حظر Binance المباشر، سنفحص قائمة محددة يدوياً لضمان الاستقرار)
+        print("⏳ [3/4] (50%) | جاري فحص العملات الرئيسية النشطة...")
+        # قائمة بأكثر العملات سيولة في Binance
+        top_symbols = ['ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 
+                       'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'SHIBUSDT', 'NEARUSDT', 'LTCUSDT']
+        
         # 3. التحليل الفني
-        print(f"⏳ [4/4] (75%) | فحص الإشارات الفنية...")
+        print(f"⏳ [4/4] (75%) | فحص MACD و Ichimoku لـ {len(top_symbols)} عملة...")
         found = 0
-        for s in valid[:40]: # فحص أهم 40 عملة لتوفير الوقت
+        for s in top_symbols:
             df = get_data(s)
             if not df.empty and len(df) >= 50:
                 m = df.ta.macd(close='c')
                 ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
                 cp = df['c'].iloc[-1]
-                # استراتيجية التقاطع الإيجابي فوق السحابة
+                
+                # استراتيجية التقاطع فوق السحابة
                 if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                    send_msg(f"🚀 **إشارة دخول: {s.replace('/', '')}**\n💰 السعر: {cp}\n📊 BTC: {btc_change:.2f}%")
-                    print(f"📡 تم إرسال إشارة: {s}")
+                    send_msg(f"🚀 **إشارة دخول (TV): {s}**\n💰 السعر: {cp}\n📊 BTC: {btc_change:.2f}%")
+                    print(f"📡 إشارة مؤكدة: {s}")
                     found += 1
+                time.sleep(1) # تأخير بسيط لتجنب الضغط على السيرفر
         
         print(f"🏁 (100%) | اكتمل التحليل. الإشارات المرسلة: {found}")
-    except Exception as e:
-        print(f"⚠️ خطأ مفاجئ: {e}")
 
-send_msg("🤖 رادار Railway المطور (النسخة النهائية) بدأ العمل")
+    except Exception as e:
+        print(f"⚠️ خطأ: {e}")
+
+send_msg("🤖 رادار Railway (مدعوم ببيانات TradingView) بدأ العمل الآن")
 last_pulse = -1
 
 while True:
