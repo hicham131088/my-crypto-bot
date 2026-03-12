@@ -27,13 +27,30 @@ def send_msg(text):
     except: pass
 
 def get_data(symbol):
-    try:
-        url = f"https://api1.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100"
-        res = requests.get(url, timeout=15).json()
-        df = pd.DataFrame(res, columns=['t','o','h','l','c','v','ct','q','tr','tb','tq','i'])
-        for col in ['h','l','c']: df[col] = df[col].astype(float)
-        return df
-    except: return pd.DataFrame()
+        try:
+                # روابط متعددة لضمان الوصول
+                        urls = [
+                                    f"https://api1.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100",
+                                                f"https://api2.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100",
+                                                            f"https://api3.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100"
+                                                                    ]
+                                                                            for url in urls:
+                                                                                        try:
+                                                                                                        res = requests.get(url, timeout=10).json()
+                                                                                                                        # التأكد أن الرد عبارة عن قائمة بيانات وليس رسالة خطأ نصية
+                                                                                                                                        if isinstance(res, list) and len(res) > 0:
+                                                                                                                                                            df = pd.DataFrame(res, columns=['t','o','h','l','c','v','ct','q','tr','tb','tq','i'])
+                                                                                                                                                                                for col in ['h','l','c']: df[col] = df[col].astype(float)
+                                                                                                                                                                                                    return df
+                                                                                                                                                                                                                    else:
+                                                                                                                                                                                                                                        print(f"⚠️ تنبيه: رد غير متوقع من {symbol}، نحاول الرابط التالي...")
+                                                                                                                                                                                                                                                    except:
+                                                                                                                                                                                                                                                                    continue
+                                                                                                                                                                                                                                                                            return pd.DataFrame()
+                                                                                                                                                                                                                                                                                except Exception as e:
+                                                                                                                                                                                                                                                                                        print(f"❌ خطأ في جلب البيانات: {e}")
+                                                                                                                                                                                                                                                                                                return pd.DataFrame()
+                                                                                                                                                                                                                                                                                                
 
 def run_radar():
     print(f"\n🚀 [بدء دورة التحليل: {datetime.now().strftime('%H:%M:%S')}]")
