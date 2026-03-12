@@ -57,14 +57,12 @@ def run_radar():
                 if volume_usd < 200000: continue
                 
                 try:
-                    # حل مشكلة التحذير: استخدام 'D' بدلاً من 'd'
                     m = df.ta.macd(close='c')
                     ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
                     
                     if m is None or ic is None: continue
                     
                     cp = df['c'].iloc[-1]
-                    # شرط الدخول الفني
                     if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
                         send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 BTC: {btc_change:.2f}%")
                         found += 1
@@ -75,7 +73,7 @@ def run_radar():
         print(f"⚠️ خطأ عام: {e}")
 
 # رسالة البدء
-send_msg("📡 البوت يعمل الآن بنسخة مستقرة ونظيفة 100%.")
+send_msg("📡 تم إصلاح الخطأ البرمجي.. البوت يعمل الآن بكفاءة.")
 
 last_pulse = -1
 while True:
@@ -85,8 +83,4 @@ while True:
         last_pulse = now.minute
         if now.minute in [0, 30]:
             run_radar()
-    time.sleep(1)
-        if now.minute in [0, 30]:
-            run_radar()
-            
     time.sleep(1)
