@@ -1,5 +1,4 @@
 pandas
 pandas_ta
 requests
-tvdatafeed
-git+https://github.com/aliiranshah/tvdatafeed.git
+tvDatafeed
