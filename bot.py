@@ -11,14 +11,20 @@ def send_msg(text):
     except: pass
 
 def get_data(symbol):
-    url = f"https://api2.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100"
-    try:
-        res = requests.get(url, timeout=10).json()
-        if isinstance(res, list) and len(res) > 0:
-            df = pd.DataFrame(res, columns=['t','o','h','l','c','v','ct','q','tr','tb','tq','i'])
-            df[['h','l','c']] = df[['h','l','c']].astype(float)
-            return df
-    except: pass
+    # استخدام روابط متعددة لضمان جلب البيانات
+    urls = [
+        f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100",
+        f"https://api1.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100",
+        f"https://api2.binance.com/api/v3/klines?symbol={symbol}&interval=30m&limit=100"
+    ]
+    for url in urls:
+        try:
+            res = requests.get(url, timeout=10).json()
+            if isinstance(res, list) and len(res) > 0:
+                df = pd.DataFrame(res, columns=['t','o','h','l','c','v','ct','q','tr','tb','tq','i'])
+                df[['h','l','c']] = df[['h','l','c']].astype(float)
+                return df
+        except: continue
     return pd.DataFrame()
 
 def run_radar():
@@ -28,7 +34,7 @@ def run_radar():
         print("⏳ [2/4] جاري تحليل اتجاه البيتكوين... (25%)")
         btc = get_data('BTCUSDT')
         if btc.empty: 
-            print("❌ فشل جلب بيانات البيتكوين.")
+            print("❌ فشل جلب بيانات البيتكوين بعد محاولة كافة الروابط.")
             return
             
         btc_change = ((btc['c'].iloc[-1] - btc['c'].iloc[-2]) / btc['c'].iloc[-2]) * 100
@@ -36,34 +42,39 @@ def run_radar():
         print(f"📊 نتيجة البيتكوين: {status} ({btc_change:.2f}%)")
 
         if btc_change < 0:
-            print(f"🛑 البيتكوين نازل بقوة. إنهاء التحليل فوراً للحماية.")
+            print(f"🛑 البيتكوين نازل بقوة ({btc_change:.2f}%). إنهاء التحليل فوراً للحماية.")
             return
 
         # مرحلة 2: تحليل السيولة
         print("⏳ [3/4] جاري فحص سيولة السوق... (50%)")
-        r = requests.get("https://api2.binance.com/api/v3/ticker/24hr").json()
-        valid = [i['symbol'] for i in r if i['symbol'].endswith('USDT') and float(i['quoteVolume']) > 20000000]
-        print(f"✅ تم إيجاد {len(valid)} عملة تحقق شرط السيولة (>20M$)")
+        try:
+            r = requests.get("https://api.binance.com/api/v3/ticker/24hr").json()
+            valid = [i['symbol'] for i in r if i['symbol'].endswith('USDT') and float(i['quoteVolume']) > 20000000]
+            print(f"✅ تحليل السيولة: تم إيجاد {len(valid)} عملة تحقق الشرط (>20M$)")
+        except:
+            print("❌ فشل جلب بيانات السيولة.")
+            return
 
         # مرحلة 3: تحليل الإشارات الفنية
         print(f"⏳ [4/4] جاري فحص الإشارات الفنية لـ {len(valid)} عملة... (75%)")
         found_signals = 0
-        for index, s in enumerate(valid):
+        for s in valid:
             df = get_data(s)
             if not df.empty and len(df) >= 50:
                 m = df.ta.macd(close='c')
                 ic = df.ta.ichimoku(high='h', low='l', close='c')[0]
                 cp = df['c'].iloc[-1]
+                # استراتيجية MACD + Ichimoku
                 if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
                     send_msg(f"🚀 **دخول: {s}**\n💰 السعر: {cp}\n📊 BTC: {btc_change:.2f}%")
-                    print(f"📡 تم إرسال إشارة للعملة: {s}")
+                    print(f"📡 إشارة فنية مؤكدة: {s}")
                     found_signals += 1
         
-        print(f"🏁 تم الانتهاء من الفحص. العملات المكتشفة: {found_signals} (100%)")
+        print(f"🏁 انتهى التحليل. الإشارات المرسلة: {found_signals} (100%)")
         print("--------------------------------------------------")
 
     except Exception as e:
-        print(f"⚠️ حدث خطأ أثناء التحليل: {e}")
+        print(f"⚠️ حدث خطأ غير متوقع: {e}")
 
 send_msg("🤖 رادار Railway المطور بدأ العمل (نظام التقارير الحية)")
 last_pulse = -1
@@ -74,7 +85,6 @@ while True:
         print(f"🕒 نبض السيرفر: {now.strftime('%H:%M')}")
         last_pulse = now.minute
         
-        # لا يتم تحليل البيتكوين والسيولة إلا عند الدقيقة 00 و 30
         if now.minute in [0, 30]:
             run_radar()
             
