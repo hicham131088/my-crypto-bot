@@ -1,11 +1,7 @@
 import time, requests, pandas as pd, pandas_ta as ta, yfinance as yf
 from datetime import datetime
-import warnings
 
-# إخفاء التحذيرات لضمان استقرار السجلات
-warnings.simplefilter(action='ignore', category=FutureWarning)
-
-# --- الإعدادات ---
+# --- الإعدادات الأساسية ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
 CHAT_ID = '6424409099'
 
@@ -18,86 +14,77 @@ def send_msg(text):
 def get_data(symbol):
     try:
         yf_symbol = symbol.replace('USDT', '-USD')
-        df = yf.download(yf_symbol, period="5d", interval="30m", progress=False, show_errors=False)
-        return df if not df.empty else pd.DataFrame()
-    except: return pd.DataFrame()
+        ticker = yf.Ticker(yf_symbol)
+        df = ticker.history(period="5d", interval="30m")
+        if not df.empty:
+            # لم نعد نغير أسماء الأعمدة يدوياً لتوافق المكتبة الفنية
+            return df
+    except: pass
+    return pd.DataFrame()
 
 def get_full_market_list():
-    # قائمة 200 عملة (الأقوى + الميم + العملات الجديدة)
     return [
-        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'DOGEUSDT', 'LINKUSDT',
-        'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT',
-        'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 'BCHUSDT',
-        'AAVEUSDT', 'ALGOUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT', 'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'GALAUSDT',
-        'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'WLDUSDT', 'ARKMUSDT', 'STRKUSDT',
-        'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TAOUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'DOGSUSDT', 'ASTRUSDT', 'ANKRUSDT',
-        'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ARKUSDT', 'ARUSDT', 'AUCTIONUSDT', 'BADGERUSDT', 'BALUSDT',
-        'BATUSDT', 'BELUSDT', 'BICOUSDT', 'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT', 'CKBUSDT',
-        'COMPUSDT', 'COTIUSDT', 'CYBERUSDT', 'DASHUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT', 'ENJUSDT', 'EOSUSDT', 'ETHFIUSDT',
-        'FTMUSDT', 'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'HBARUSDT', 'HIGHUSDT', 'HOOKUSDT', 'IOTAUSDT', 'IOTXUSDT', 'JASMYUSDT',
-        'KAVAUSDT', 'KNCUSDT', 'LPTUSDT', 'LRCUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MINAUSDT', 'MOVRUSDT', 'MYROUSDT',
-        'NFPUSDT', 'NTRNUSDT', 'OGNUSDT', 'ONTUSDT', 'PHBUSDT', 'PNUTUSDT', 'POLYXUSDT', 'POWRUSDT', 'QNTUSDT', 'QTUMUSDT',
-        'RAYUSDT', 'REEFUSDT', 'RIFUSDT', 'RLCUSDT', 'ROSEUSDT', 'RUNEUSDT', 'RVNUSDT', 'SKLUSDT', 'SXPUSDT', 'THETAUSDT',
-        'TRBUSDT', 'UMAUSDT', 'VTHOUSDT', 'WAXPUSDT', 'WIFUSDT', 'WOOUSDT', 'XLMUSDT', 'XTZUSDT', 'YFIUSDT', 'ZECUSDT',
-        'ZENUSDT', 'ZILUSDT', 'ZRXUSDT', '1INCHUSDT', 'AERGOUSDT', 'ALICEUSDT', 'ALPACAUSDT', 'ALPHAUSDT', 'AMBUSDT', 'APEUSDT',
-        'ARDRUSDT', 'ASRUSDT', 'ATMUSDT', 'AUDIOUSDT', 'AVAUSDT', 'BAKEUSDT', 'BARUSDT', 'BDPUSDT', 'BETAUSDT', 'BIFIUSDT',
-        'BONDUSDT', 'BSWUSDT', 'BURGERUSDT', 'C98USDT', 'CITYUSDT', 'CLVUSDT', 'CTKUSDT', 'CTSIUSDT', 'CVXUSDT', 'DENTUSDT',
-        'DOCKUSDT', 'DUSKUSDT', 'EPXUSDT', 'ERNUSDT', 'FARMUSDT', 'FIDAUSDT', 'FISUSDT', 'GNSUSDT', 'LINAUSDT', 'LQTYUSDT',
-        'MBOXUSDT', 'METISUSDT', 'MTLUSDT', 'NKNUSDT', 'NMRUSDT', 'OGUSDT', 'OMGUSDT', 'ONGUSDT', 'OXTUSDT', 'PDAUSDT',
-        'PERPUSDT', 'POLSUSDT', 'PONDUSDT', 'PSGUSDT', 'PUNDIXUSDT', 'PYRUSDT', 'QIUSDT', 'RADUSDT', 'REIUSDT', 'REQUSDT'
+        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT',
+        'DOGEUSDT', 'LINKUSDT', 'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT',
+        'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT', 'RNDRUSDT', 'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT',
+        'TIAUSDT', 'STXUSDT', 'FILUSDT', 'LDOUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 
+        'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'EGLDUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT'
     ]
 
 def run_radar():
-    now_str = datetime.now().strftime('%H:%M')
-    print(f"🚀 [1/4] {now_str} | بدء المسح")
+    print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح")
     try:
         btc = get_data('BTCUSDT')
-        if btc.empty or len(btc) < 50:
-            print("❌ فشل جلب BTC")
+        if btc.empty or len(btc) < 50: 
+            print("❌ نقص في بيانات البيتكوين.")
             return
         
+        # حساب EMA 50 للبيتكوين
         ema50 = btc.ta.ema(length=50)
-        curr_btc = btc['Close'].iloc[-1]
-        if curr_btc <= ema50.iloc[-1]:
-            print(f"🛑 سوق هابط (BTC < EMA50)")
+        current_btc = btc['Close'].iloc[-1]
+        last_ema50 = ema50.iloc[-1]
+        
+        # شرط الزخم الصاعد (EMA 50)
+        if current_btc > last_ema50:
+            print(f"✅ زخم صاعد (BTC: {current_btc:.0f} > EMA: {last_ema50:.0f})")
+        else:
+            print(f"🛑 زخم هابط (BTC: {current_btc:.0f} < EMA: {last_ema50:.0f}).")
             return
 
-        print(f"✅ سوق صاعد. جاري فحص 200 عملة...")
-        all_syms = get_full_market_list()
+        all_symbols = get_full_market_list()
         found = 0
-        
-        for i, s in enumerate(all_syms, 1):
+        for s in all_symbols:
             df = get_data(s)
-            if not df.empty and len(df) >= 52:
-                v_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-                if v_usd >= 200000:
-                    try:
-                        m = df.ta.macd()
-                        # إعدادات ثابتة للإيشيموكو لمنع أي تحذير
-                        ic = df.ta.ichimoku(tenkan=9, kijun=26, senkou=52)[0]
-                        cp = df['Close'].iloc[-1]
-                        if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                            send_msg(f"🚀 **دخول: {s}**\n💰 السعر: {cp:.4f}")
-                            found += 1
-                    except: pass
-            
-            if i % 40 == 0:
-                print(f"📊 التقدم: {i}/200")
-            time.sleep(0.05)
-            
-        print(f"🏁 انتهى. الإشارات: {found}")
+            if not df.empty and len(df) >= 50:
+                df = df.dropna()
+                # فلتر السيولة (200 ألف دولار)
+                volume_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
+                if volume_usd < 200000: continue
+                
+                try:
+                    # التحليل الفني (بدون تغيير المنطق)
+                    m = df.ta.macd()
+                    ic = df.ta.ichimoku()[0]
+                    cp = df['Close'].iloc[-1]
+                    
+                    # التقاطع الإيجابي + فوق السحابة
+                    if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
+                        send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 وضع السوق: صاعد (EMA 50)")
+                        found += 1
+                except: continue
+            time.sleep(0.1)
+        print(f"🏁 اكتمل. الإشارات: {found}")
     except Exception as e:
-        print(f"⚠️ خطأ: {e}")
+        print(f"⚠️ خطأ عام: {e}")
 
-# البدء
-send_msg("📡 البوت يعمل الآن بقائمة 200 عملة محدثة.")
+send_msg("📡 تحديث: تم تصحيح أخطاء البيانات وتفعيل فلتر EMA 50 للبيتكوين.")
 
-last_min = -1
+last_pulse = -1
 while True:
     now = datetime.now()
-    if now.minute % 5 == 0 and now.minute != last_min:
-        last_min = now.minute
-        print(f"🕒 نبض: {now.strftime('%H:%M')}")
+    if now.minute % 5 == 0 and now.minute != last_pulse:
+        print(f"🕒 نبض السيرفر: {now.strftime('%H:%M')}")
+        last_pulse = now.minute
         if now.minute in [0, 30]:
             run_radar()
     time.sleep(1)
