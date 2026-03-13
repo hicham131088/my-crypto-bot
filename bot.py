@@ -18,37 +18,35 @@ def send_msg(text):
 def get_data(symbol):
     try:
         yf_symbol = symbol.replace('USDT', '-USD')
-        # استخدام yf.download مباشرة لسرعة وثبات أكبر في جلب البيانات
-        df = yf.download(yf_symbol, period="5d", interval="30m", progress=False, show_errors=False)
+        ticker = yf.Ticker(yf_symbol)
+        df = ticker.history(period="5d", interval="30m")
         if not df.empty: return df
     except: pass
     return pd.DataFrame()
 
 def get_full_market_list():
-    # قائمة تضم أقوى 200 عملة (بما فيها الميم والعملات الجديدة) المتاحة حالياً
+    # قائمة بـ 200 من أقوى وأحدث عملات بينانس (بما في ذلك الميم والسيولة العالية)
     return [
         'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'DOGEUSDT', 'LINKUSDT',
         'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT',
-        'RNDRUSDT', 'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT',
-        'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT', 'IMXUSDT', 'GRTUSDT', 'SEIUSDT',
-        'GALAUSDT', 'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'WLDUSDT', 'ARKMUSDT',
-        'STRKUSDT', 'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TAOUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'DOGSUSDT', 'ASTRUSDT',
-        'ANKRUSDT', 'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ARKUSDT', 'ARUSDT', 'AUCTIONUSDT', 'BADGERUSDT',
-        'BALUSDT', 'BATUSDT', 'BELUSDT', 'BICOUSDT', 'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT',
-        'CKBUSDT', 'COMPUSDT', 'COTIUSDT', 'CYBERUSDT', 'DASHUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT', 'ENJUSDT', 'EOSUSDT',
-        'ETHFIUSDT', 'FTMUSDT', 'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'HBARUSDT', 'HIGHUSDT', 'HOOKUSDT', 'IOTAUSDT', 'IOTXUSDT',
-        'JASMYUSDT', 'KAVAUSDT', 'KNCUSDT', 'LPTUSDT', 'LRCUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MINAUSDT', 'MOVRUSDT',
-        'MYROUSDT', 'NFPUSDT', 'NTRNUSDT', 'OGNUSDT', 'ONTUSDT', 'PHBUSDT', 'PNUTUSDT', 'POLYXUSDT', 'POWRUSDT', 'QNTUSDT',
-        'QTUMUSDT', 'RAYUSDT', 'REEFUSDT', 'RIFUSDT', 'RLCUSDT', 'ROSEUSDT', 'RUNEUSDT', 'RVNUSDT', 'SKLUSDT', 'SXPUSDT',
-        'THETAUSDT', 'TRBUSDT', 'UMAUSDT', 'VTHOUSDT', 'WAXPUSDT', 'WIFUSDT', 'WOOUSDT', 'XLMUSDT', 'XTZUSDT', 'YFIUSDT',
-        'ZECUSDT', 'ZENUSDT', 'ZILUSDT', 'ZRXUSDT', '1INCHUSDT', 'AERGOUSDT', 'ALICEUSDT', 'ALPACAUSDT', 'ALPHAUSDT', 'AMBUSDT',
-        'APEUSDT', 'ARDRUSDT', 'ASRUSDT', 'ATMUSDT', 'AUDIOUSDT', 'AVAUSDT', 'BAKEUSDT', 'BARUSDT', 'BDPUSDT', 'BETAUSDT',
-        'BIFIUSDT', 'BONDUSDT', 'BSWUSDT', 'BURGERUSDT', 'C98USDT', 'CITYUSDT', 'CLVUSDT', 'CTKUSDT', 'CTSIUSDT', 'CVXUSDT',
-        'DENTUSDT', 'DOCKUSDT', 'DUSKUSDT', 'EPXUSDT', 'ERNUSDT', 'FARMUSDT', 'FIDAUSDT', 'FISUSDT', 'GNSUSDT', 'LINAUSDT',
-        'LQTYUSDT', 'LPTUSDT', 'MBOXUSDT', 'METISUSDT', 'MTLUSDT', 'NKNUSDT', 'NMRUSDT', 'OGUSDT', 'OMGUSDT', 'ONGUSDT',
-        'OXTUSDT', 'PDAUSDT', 'PERPUSDT', 'POLSUSDT', 'PONDUSDT', 'PSGUSDT', 'PUNDIXUSDT', 'PYRUSDT', 'QIUSDT', 'RADUSDT',
-        'REIUSDT', 'REQUSDT', 'SCRTUSDT', 'SFPUSDT', 'SKLUSDT', 'SLPUSDT', 'STEEMUSDT', 'STMXUSDT', 'STORJUSDT', 'STPTUSDT',
-        'SUNUSDT', 'SYSUSDT', 'TFUELUSDT', 'TKOUSDT', 'TLMUSDT', 'TOMOUSDT', 'TRUUSDT', 'TWTUSDT', 'UTKUSDT', 'VGXUSDT'
+        'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 'BCHUSDT',
+        'AAVEUSDT', 'ALGOUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT', 'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'GALAUSDT',
+        'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'WLDUSDT', 'ARKMUSDT', 'STRKUSDT',
+        'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TAOUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'DOGSUSDT', 'ASTRUSDT', 'ANKRUSDT',
+        'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ARKUSDT', 'ARUSDT', 'AUCTIONUSDT', 'BADGERUSDT', 'BALUSDT',
+        'BATUSDT', 'BELUSDT', 'BICOUSDT', 'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT', 'CKBUSDT',
+        'COMPUSDT', 'COTIUSDT', 'CYBERUSDT', 'DASHUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT', 'ENJUSDT', 'EOSUSDT', 'ETHFIUSDT',
+        'FTMUSDT', 'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'HBARUSDT', 'HIGHUSDT', 'HOOKUSDT', 'IOTAUSDT', 'IOTXUSDT', 'JASMYUSDT',
+        'KAVAUSDT', 'KNCUSDT', 'LPTUSDT', 'LRCUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MINAUSDT', 'MOVRUSDT', 'MYROUSDT',
+        'NFPUSDT', 'NTRNUSDT', 'OGNUSDT', 'ONTUSDT', 'PHBUSDT', 'PNUTUSDT', 'POLYXUSDT', 'POWRUSDT', 'QNTUSDT', 'QTUMUSDT',
+        'RAYUSDT', 'REEFUSDT', 'RIFUSDT', 'RLCUSDT', 'ROSEUSDT', 'RUNEUSDT', 'RVNUSDT', 'SKLUSDT', 'SXPUSDT', 'THETAUSDT',
+        'TRBUSDT', 'UMAUSDT', 'VTHOUSDT', 'WAXPUSDT', 'WIFUSDT', 'WOOUSDT', 'XLMUSDT', 'XTZUSDT', 'YFIUSDT', 'ZECUSDT',
+        'ZENUSDT', 'ZILUSDT', 'ZRXUSDT', '1INCHUSDT', 'AERGOUSDT', 'ALICEUSDT', 'ALPACAUSDT', 'ALPHAUSDT', 'AMBUSDT', 'APEUSDT',
+        'ARDRUSDT', 'ASRUSDT', 'ATMUSDT', 'AUDIOUSDT', 'AVAUSDT', 'BAKEUSDT', 'BARUSDT', 'BDPUSDT', 'BETAUSDT', 'BIFIUSDT',
+        'BONDUSDT', 'BSWUSDT', 'BURGERUSDT', 'C98USDT', 'CITYUSDT', 'CLVUSDT', 'CTKUSDT', 'CTSIUSDT', 'CVXUSDT', 'DENTUSDT',
+        'DOCKUSDT', 'DUSKUSDT', 'EPXUSDT', 'ERNUSDT', 'FARMUSDT', 'FIDAUSDT', 'FISUSDT', 'GNSUSDT', 'LINAUSDT', 'LQTYUSDT',
+        'MBOXUSDT', 'METISUSDT', 'MTLUSDT', 'NKNUSDT', 'NMRUSDT', 'OGUSDT', 'OMGUSDT', 'ONGUSDT', 'OXTUSDT', 'PDAUSDT',
+        'PERPUSDT', 'POLSUSDT', 'PONDUSDT', 'PSGUSDT', 'PUNDIXUSDT', 'PYRUSDT', 'QIUSDT', 'RADUSDT', 'REIUSDT', 'REQUSDT'
     ]
 
 def run_radar():
@@ -83,8 +81,7 @@ def run_radar():
             processed_count += 1
             df = get_data(s)
             
-            if not df.empty and len(df) >= 52:
-                # التأكد من عدم وجود قيم مفقودة
+            if not df.empty and len(df) >= 50:
                 df = df.dropna()
                 
                 # فحص السيولة (200 ألف دولار)
@@ -93,8 +90,7 @@ def run_radar():
                     passed_liquidity += 1
                     try:
                         m = df.ta.macd()
-                        # استخدام الإعدادات اليدوية لتفادي تحذير 'd'
-                        ic = df.ta.ichimoku(tenkan=9, kijun=26, senkou=52)[0]
+                        ic = df.ta.ichimoku()[0] # استخدام التلقائي لتجنب التحذير
                         cp = df['Close'].iloc[-1]
                         
                         # شرط الاستراتيجية
@@ -103,8 +99,29 @@ def run_radar():
                             found_signals += 1
                     except: continue
 
-            # طباعة نسبة التقدم كل 20 عملة
+            # طباعة نسبة التقدم كل 20 عملة لتجنب ازدحام السجلات
             if processed_count % 20 == 0 or processed_count == total_symbols:
+                percentage = (processed_count / total_symbols) * 100
+                print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
+            
+            time.sleep(0.05) # تسريع الفحص قليلاً
+
+        print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
+    except Exception as e:
+        print(f"⚠️ خطأ عام: {e}")
+
+# رسالة البدء
+send_msg("📡 رادار الـ 200 عملة يعمل الآن بنظام الـ EMA 50.")
+
+last_pulse = -1
+while True:
+    now = datetime.now()
+    if now.minute % 5 == 0 and now.minute != last_pulse:
+        print(f"🕒 نبض السيرفر: {now.strftime('%H:%M')}")
+        last_pulse = now.minute
+        if now.minute in [0, 30]:
+            run_radar()
+    time.sleep(1)
                 percentage = (processed_count / total_symbols) * 100
                 print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
             
