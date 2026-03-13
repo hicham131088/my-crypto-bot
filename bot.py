@@ -96,8 +96,10 @@ def run_radar():
             
             macd = df.ta.macd()
             ichimoku = df.ta.ichimoku()
+            rsi = df.ta.rsi(length=14)
+            atr = df.ta.atr(length=14)
             
-            if macd is None or ichimoku is None: continue
+            if macd is None or ichimoku is None or rsi is None or atr is None: continue
 
             # تعريف البيانات للشمعة الحالية المقفلة (index -1) والشمعة التي قبلها (index -2)
             cp_now = df['Close'].iloc[-1]
@@ -105,6 +107,8 @@ def run_radar():
             isb_now = ichimoku[0]['ISB_26'].iloc[-1]
             macd_val_now = macd.iloc[-1, 0]
             signal_val_now = macd.iloc[-1, 1]
+            rsi_now = rsi.iloc[-1]
+            atr_now = atr.iloc[-1]
 
             cp_prev = df['Close'].iloc[-2]
             isa_prev = ichimoku[0]['ISA_9'].iloc[-2]
@@ -112,15 +116,21 @@ def run_radar():
             macd_val_prev = macd.iloc[-2, 0]
             signal_val_prev = macd.iloc[-2, 1]
 
-            # منطق الاستراتيجية للشمعة المقفلة الحالية
-            cond_now = (macd_val_now > signal_val_now) and (cp_now > isa_now) and (cp_now > isb_now)
+            # منطق الاستراتيجية للشمعة المقفلة الحالية (تمت إضافة شرط الـ RSI هنا)
+            cond_now = (macd_val_now > signal_val_now) and (cp_now > isa_now) and (cp_now > isb_now) and (rsi_now < 70)
             
             # منطق الاستراتيجية للشمعة السابقة (يجب أن يكون خطأ لضمان أن الإشارة بدأت الآن)
             cond_prev = (macd_val_prev > signal_val_prev) and (cp_prev > isa_prev) and (cp_prev > isb_prev)
 
             # إشارة الشراء: تحقق الشرط الآن ولم يكن متحققاً في الشمعة السابقة
             if cond_now and not cond_prev:
-                msg = f"✅ *إشارة شراء جديدة (ولادة إشارة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n📊 سيولة الشمعة: ${vol_usd:,.0f}\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
+                # حساب وقف الخسارة وأخذ الربح
+                sl_price = cp_now - (1 * atr_now)
+                tp_price = cp_now + (2 * atr_now)
+                sl_pct = (atr_now / cp_now) * 100
+                tp_pct = ((2 * atr_now) / cp_now) * 100
+
+                msg = f"✅ *إشارة شراء جديدة (ولادة إشارة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n🎯 أخذ الربح: ${tp_price:.4f} (+{tp_pct:.2f}%)\n🛑 وقف الخسارة: ${sl_price:.4f} (-{sl_pct:.2f}%)\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
                 send_msg(msg)
                 print(f"✨ إشارة جديدة: {s}")
                 found += 1
@@ -155,4 +165,4 @@ while True:
         time.sleep(1)
     except Exception as e:
         time.sleep(10)
-
+        
