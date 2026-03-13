@@ -9,64 +9,18 @@ from datetime import datetime
 
 warnings.filterwarnings('ignore')
 
-# --- الإعدادات ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
 CHAT_ID = '6424409099'
 
-# قائمة أشهر 400 عملة رقمية مقابل USDT (يدوية لضمان الاستقرار)
-SYMBOLS_LIST = [
-    'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'MATICUSDT', 'LTCUSDT',
-    'SHIBUSDT', 'TRXUSDT', 'AVAXUSDT', 'UNIUSDT', 'LINKUSDT', 'ATOMUSDT', 'ETCUSDT', 'XLMUSDT', 'BCHUSDT', 'ALGOUSDT',
-    'VETUSDT', 'MANAUSDT', 'SANDUSDT', 'HBARUSDT', 'ICPUSDT', 'FILUSDT', 'EGLDUSDT', 'NEARUSDT', 'APEUSDT', 'QNTUSDT',
-    'LUNCUSDT', 'FTMUSDT', 'GRTUSDT', 'THETAUSDT', 'AXSUSDT', 'EOSUSDT', 'FLOWUSDT', 'AAVEUSDT', 'CHZUSDT', 'KCSUSDT',
-    'MKRUSDT', 'ZECUSDT', 'XMRUSDT', 'IOTAUSDT', 'NEOUSDT', 'CRVUSDT', 'RUNEUSDT', 'DASHUSDT', 'KAVAUSDT', 'ENJUSDT',
-    'LRCUSDT', 'BATUSDT', 'CELOUSDT', 'ZILUSDT', 'GALAUSDT', 'MINAUSDT', 'STXUSDT', 'COMPUSDT', 'GMTUSDT', 'ANKRUSDT',
-    'HOTUSDT', 'QTUMUSDT', 'KSMUSDT', '1INCHUSDT', 'OMGUSDT', 'ZRXUSDT', 'RVNUSDT', 'IOTXUSDT', 'GLMRUSDT', 'WAVESUSDT',
-    'ONEUSDT', 'ROSEUSDT', 'KNCUSDT', 'AUDIOUSDT', 'KDAUSDT', 'SKLUSDT', 'MASKUSDT', 'SXPUSDT', 'YFIUSDT', 'BANDUSDT',
-    'ICXUSDT', 'SUSHIUSDT', 'JASMYUSDT', 'WOOUSDT', 'CHRUSDT', 'SCRTUSDT', 'WAXPUSDT', 'DYDXUSDT', 'ONTUSDT', 'FLOKIUSDT',
-    'PEPEUSDT', 'ARBUSDT', 'OPUSDT', 'APTUSDT', 'SUIUSDT', 'LDOUSDT', 'ORDIUSDT', 'TIAUSDT', 'SEIUSDT', 'INJUSDT',
-    'IMXUSDT', 'RNDRUSDT', 'FETUSDT', 'AGIXUSDT', 'OCEANUSDT', 'CFXUSDT', 'STGUSDT', 'HOOKUSDT', 'MAGICUSDT', 'GNSUSDT',
-    'JOEUSDT', 'IDUSDT', 'LQTYUSDT', 'GMXUSDT', 'PENDLEUSDT', 'RDNTUSDT', 'FLRUSDT', 'COREUSDT', 'KASUSDT', 'BEAMUSDT',
-    'PYTHUSDT', 'JTOUSDT', 'BONKUSDT', 'MEMEUSDT', 'ORDIUSDT', 'WLDUSDT', 'ARKMUSDT', 'MAVIAUSDT', 'STRKUSDT', 'AXLUSDT',
-    'PORTALUSDT', 'METISUSDT', 'AEVOUSDT', 'ETHFIUSDT', 'BOMEUSDT', 'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TNSRUSDT', 'TAOUSDT',
-    'OMNIUSDT', 'REZUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'LISTAUSDT', 'ZKUSDT', 'RENDERUSDT', 'BANANAUSDT', 'DOGSUSDT',
-    'TURBOUSDT', 'POPCATUSDT', 'MEWUSDT', 'BRETTUSDT', 'MOGUSDT', 'NEIROUSDT', 'BABYDOGEUSDT', 'HMSTRUSDT', 'CATIUSDT',
-    'EIGENUSDT', 'SCRUSDT', 'GOATUSDT', 'MOODENGUSDT', 'GRASSUSDT', 'DRIFTUSDT', 'PENGUUSDT', 'TRUMPUSDT', 'VINEUSDT',
-    'SUNUSDT', 'RAREUSDT', 'ALPACAUSDT', 'TLMUSDT', 'VOXELUSDT', 'REIUSDT', 'PROMSUSDT', 'OXTUSDT', 'VIDTUSDT', 'DOCKUSDT',
-    'KEYUSDT', 'DEGOUSDT', 'HARDUSDT', 'RIFUSDT', 'FORTHUSDT', 'BURGERUSDT', 'SLPUSDT', 'BAKEUSDT', 'SYSUSDT', 'CKBUSDT',
-    'DENTUSDT', 'TKOUSDT', 'LINAUSDT', 'PERPUSDT', 'STRAXUSDT', 'ALPHAUSDT', 'CTSIUSDT', 'OGNUSDT', 'BELUSDT', 'ARPAUSDT',
-    'MTLUSDT', 'DGBUSDT', 'DUSKUSDT', 'COSUSDT', 'NKNUSDT', 'TFUELUSDT', 'SCUSDT', 'LSKUSDT', 'RENUSDT', 'RLCUSDT',
-    'LTOUSDT', 'MFTUSDT', 'ATAUSDT', 'MLNUSDT', 'QUICKUSDT', 'POLSUSDT', 'FARMUSDT', 'REQUSDT', 'GTCUSDT', 'MLNUSDT',
-    'CLVUSDT', 'MBOXUSDT', 'ORNUSDT', 'UTKUSDT', 'STMXUSDT', 'DEXEUSDT', 'FRONTUSDT', 'TRUUSDT', 'PONDFUSDT', 'TWTUSDT',
-    'SUPERUSDT', 'BADGERUSDT', 'FISUSDT', 'MDXUSDT', 'PROSUSDT', 'VTHOUSDT', 'PUNDIXUSDT', 'LPTUSDT', 'FORUSDT', 'AKROUSDT',
-    'POLUSDT', 'ELFUSDT', 'CELRUSDT', 'GTOUSDT', 'VIBUSDT', 'AMBUSDT', 'ARKUSDT', 'LOOMUSDT', 'GFTUSDT', 'PHBUSDT',
-    'AGLDUSDT', 'RADUSDT', 'HIGHUSDT', 'GLMUSDT', 'LAZIOUSDT', 'PORTOUSDT', 'SANTOSUSDT', 'VOXELUSDT', 'DARUSDT', 'BNXUSDT',
-    'MOVRUSDT', 'CITYUSDT', 'ASRUSDT', 'JUVUSDT', 'ACMUSDT', 'ATMUSDT', 'OGUSDT', 'BICOUSDT', 'FLUXUSDT', 'VOXELUSDT',
-    'PYRUSDT', 'KP3RUSDT', 'QIUSDT', 'MCUSDT', 'BIFIUSDT', 'OOKIUSDT', 'SPELLUSDT', 'USTCUSDT', 'ANCUSDT', 'LUNCUSDT',
-    'GALUSDT', 'OPUSDT', 'LEVERUSDT', 'LDOUSDT', 'VGXUSDT', 'STEEMUSDT', 'MTLUSDT', 'STORJUSDT', 'ADXUSDT', 'CVXUSDT',
-    'PNTUSDT', 'REPUSDT', 'PROMUSDT', 'DREPUSDT', 'INJUSDT', 'TUSDT', 'ASTRUSDT', 'KDAUSDT', 'GLMRUSDT', 'ACAUSDT',
-    'RONINUSDT', 'XNOUSDT', 'REIUSDT', 'BSWUSDT', 'EPXUSDT', 'MOBUSDT', 'NEXOUSDT', 'GALUSDT', 'LDOUSDT', 'ENJUSDT',
-    'MDTUSDT', 'DOCKUSDT', 'DATAUSDT', 'UTKUSDT', 'VICUSDT', 'STPTUSDT', 'RAREUSDT', 'PROSUSDT', 'VIBUSDT', 'STMXUSDT',
-    'NULSUSDT', 'ZVPUSDT', 'MBLUSDT', 'WNMUSDT', 'QKCUSDT', 'LOOMUSDT', 'RSRUSDT', 'OGUSDT', 'PSGUSDT', 'BARUSDT',
-    'JUVUSDT', 'CITYUSDT', 'ATMUSDT', 'ASRUSDT', 'ACMUSDT', 'SANTOSUSDT', 'PORTOUSDT', 'LAZIOUSDT', 'ALPINEUSDT', 'SUNUSDT'
-]
-
 def send_msg(text):
-    """إرسال رسالة لتلغرام مع التحقق من النجاح"""
     try:
-        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-        payload = {'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
-        response = requests.post(url, data=payload, timeout=15)
-        if response.status_code == 200:
-            return True
-        else:
-            print(f"⚠️ خطأ في تلغرام: {response.text}")
-    except Exception as e:
-        print(f"⚠️ تعذر الاتصال بتلغرام: {e}")
-    return False
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
+                      data={'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}, 
+                      timeout=15)
+    except:
+        pass
 
 def get_data(symbol):
-    """جلب بيانات العملة من Yahoo Finance"""
     try:
         yf_symbol = symbol.replace('USDT', '-USD')
         ticker = yf.Ticker(yf_symbol)
@@ -77,101 +31,157 @@ def get_data(symbol):
         pass
     return None
 
-def run_radar():
-    """المحرك الرئيسي للتحليل"""
-    print("\n" + "="*70)
-    print(f"🚀 بدء المسح الشامل - {datetime.now().strftime('%H:%M:%S')}")
-    print("="*70)
-    
-    # 1. فحص البيتكوين
-    print(f"📡 فحص حالة البيتكوين (BTC)...")
-    btc = get_data('BTCUSDT')
-    if btc is None:
-        print(f"❌ تعذر جلب بيانات BTC. سيتم تخطي الدورة.")
-        return
+def get_all_symbols():
+    try:
+        print(" jari jib el amlat min Binance...")
+        response = requests.get('https://api.binance.com/api/v3/exchangeInfo', timeout=30)
+        data = response.json()
+        symbols = [s['symbol'] for s in data['symbols'] if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT']
+        print(f" OK: {len(symbols)} amlat loaded")
+        return sorted(symbols)
+    except:
+        return []
 
+def run_radar(symbols):
+    print("\n" + "="*70)
+    print(f"ANALYSIS START - {datetime.now().strftime('%H:%M:%S')}")
+    print("="*70)
+
+    print(f"\nPhase 1: Bitcoin momentum...")
+    btc = get_data('BTCUSDT')
+    if not btc:
+        print(f" ERROR: BTC data not available")
+        print(f"STOP\n")
+        return
+        
     ema50 = btc['Close'].ewm(span=50, adjust=False).mean()
     btc_price = btc['Close'].iloc[-1]
     btc_ema = ema50.iloc[-1]
-
+    
     if btc_price <= btc_ema:
-        print(f"📉 البيتكوين في اتجاه هابط ({btc_price:.0f} < {btc_ema:.0f}). توقف المسح.")
+        print(f" DOWN: Price {btc_price:.0f} < EMA {btc_ema:.0f}")
+        print(f" Market is DOWN - stopping")
+        print(f"STOP\n")
         return
-    
-    print(f"📈 البيتكوين في اتجاه صاعد. جاري فحص 400 عملة بديلة...")
+        
+    print(f" UP: Price {btc_price:.0f} > EMA {btc_ema:.0f}")
+    print(f" Continue scanning...")
 
-    # 2. فحص العملات الـ 400
+    print(f"\nPhase 2: Liquidity filter (min 200k USD)...")
+    qualified = []
+    for idx, s in enumerate(symbols, 1):
+        try:
+            df = get_data(s)
+            if df is not None:
+                vol = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
+                if vol >= 200000:
+                    qualified.append(s)
+        except:
+            pass
+            
+        if idx % 50 == 0:
+            pct = 100*idx//len(symbols)
+            print(f" Progress: {idx}/{len(symbols)} ({pct}%)")
+            
+    time.sleep(0.02)
+    print(f" OK: {len(qualified)} coins qualified")
+
+    if not qualified:
+        print(f" No coins found")
+        print(f"STOP\n")
+        return
+
+    print(f"\nPhase 3: Technical Analysis (MACD + Ichimoku)...")
     found = 0
-    total = len(SYMBOLS_LIST)
-    
-    for idx, s in enumerate(SYMBOLS_LIST, 1):
+    for idx, s in enumerate(qualified, 1):
         try:
             df = get_data(s)
             if df is None: continue
             
-            # فلتر السيولة البسيط
-            vol_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-            if vol_usd < 150000: continue # الحد الأدنى للسيولة
-            
-            # التحليل الفني
             macd = df.ta.macd(signal_indicators=True)
             ichimoku = df.ta.ichimoku()
             
-            if macd is None or ichimoku is None: continue
+            if macd is None or macd.empty: continue
+            if not ichimoku or len(ichimoku[0]) == 0: continue
+            
+            # --- تم التعديل هنا: استخدام الشمعة المقفلة [-2] والتي قبلها [-3] ---
+            cp = df['Close'].iloc[-2]
+            isa = ichimoku[0]['ISA_9'].iloc[-2]
+            isb = ichimoku[0]['ISB_26'].iloc[-2]
+            
+            signal_macd = macd.iloc[-2, 0] > macd.iloc[-2, 1]
+            signal_cloud = (cp > isa) and (cp > isb)
 
-            cp = df['Close'].iloc[-1]
-            isa = ichimoku[0]['ISA_9'].iloc[-1]
-            isb = ichimoku[0]['ISB_26'].iloc[-1]
-
-            # شروط الاستراتيجية
-            buy_signal = (macd.iloc[-1, 0] > macd.iloc[-1, 1]) and (cp > isa) and (cp > isb)
-
-            if buy_signal:
-                msg = f"✅ *إشارة شراء مؤكدة!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp:.4f}\n📊 سيولة الشمعة: ${vol_usd:,.0f}\n🕒 الوقت: {datetime.now().strftime('%H:%M')}"
-                send_msg(msg)
-                print(f"✨ اكتشاف إشارة: {s}")
+            cp_prev = df['Close'].iloc[-3]
+            isa_prev = ichimoku[0]['ISA_9'].iloc[-3]
+            isb_prev = ichimoku[0]['ISB_26'].iloc[-3]
+            
+            signal_macd_prev = macd.iloc[-3, 0] > macd.iloc[-3, 1]
+            signal_cloud_prev = (cp_prev > isa_prev) and (cp_prev > isb_prev)
+            
+            # الشرط: الإشارة تحققت في الشمعة المقفلة ولم تكن متحققة في التي قبلها
+            if (signal_macd and signal_cloud) and not (signal_macd_prev and signal_cloud_prev):
+                vol_usd = df['Volume'].iloc[-2] * cp
+                print(f" SIGNAL: {s} | Price: ${cp:.4f} | Vol: ${vol_usd:,.0f}")
+                send_msg(f"SIGNAL: {s}\nPrice: ${cp:.4f}\nVolume: ${vol_usd:,.0f}")
                 found += 1
+            # --- نهاية التعديل ---
+
         except:
             pass
-        
-        if idx % 50 == 0:
-            print(f"⏳ تم فحص {idx}/{total} عملة...")
+            
+        if idx % 20 == 0:
+            pct = 100*idx//len(qualified)
+            print(f" Progress: {idx}/{len(qualified)} ({pct}%) | Signals: {found}")
+            
+    time.sleep(0.05)
+    
+    print(f"\n{'='*70}")
+    print(f"ANALYSIS COMPLETE")
+    print(f"{'='*70}")
+    print(f"Summary:")
+    print(f" Total symbols: {len(symbols)}")
+    print(f" Qualified: {len(qualified)}")
+    print(f" Signals: {found}")
+    
+    if found > 0:
+        pct = 100*found//len(qualified)
+        print(f" Success rate: {pct}%")
+    print(f"{'='*70}\n")
 
-    print(f"\n✅ اكتمل المسح. الإشارات المكتشفة: {found}")
-    print("="*70)
-
-# --- نقطة انطلاق البوت ---
 print("\n" + "="*70)
-print("🤖 بوت صيد العملات المشفرة (إصدار الـ 400 عملة)")
+print("CRYPTO BOT - AUTOMATIC SIGNAL DETECTOR")
 print("="*70)
 
-# إرسال إشعار البدء فوراً وتكرار المحاولة إذا فشل
-print("📡 جاري محاولة إرسال إشعار البدء لتلغرام...")
-start_txt = f"🚀 *تم تشغيل البوت بنجاح!*\n🔍 يراقب الآن: 400 عملة\n⚙️ النظام: MACD + Ichimoku\n📈 الفاصل الزمني: 30 دقيقة"
-if send_msg(start_txt):
-    print("✅ تم إرسال إشعار البدء لتلغرام.")
-else:
-    print("⚠️ فشل إرسال الإشعار. تأكد من صحة TOKEN و CHAT_ID.")
+symbols = get_all_symbols()
+if not symbols:
+    print("ERROR: Failed to load symbols!")
+    exit()
 
-print(f"⏱️ البوت سيعمل آلياً كل 30 دقيقة (عند الدقيقة 00 و 30).")
+send_msg(f"BOT ACTIVE\nSymbols: {len(symbols)}")
+print(f"BOT READY")
+print(f" Symbols: {len(symbols)}")
+print(f" Scan at: minutes 00 and 30")
+print("="*70)
 
-# تشغيل مسح أولي فور التشغيل دون انتظار الدقيقة 00
-run_radar()
-
-last_min = -1
+last_pulse = -1
 while True:
     try:
         now = datetime.now()
-        if now.minute in [0, 30] and now.minute != last_min:
-            run_radar()
-            last_min = now.minute
+        minute = now.minute
         
-        # طباعة حالة بسيطة كل 10 دقائق لضمان أن السيرفر لم يتجمد
-        if now.minute % 10 == 0 and now.second == 0:
-            print(f"🕒 نبض النظام: {now.strftime('%H:%M')} - البوت مستمر في المراقبة")
+        if minute % 5 == 0 and minute != last_pulse:
+            last_pulse = minute
+            print(f"\nPulse: {now.strftime('%H:%M:%S')} - Bot running")
             
-        time.sleep(1)
+        if minute in [0, 30]:
+            run_radar(symbols)
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\n\nBOT STOPPED")
+        break
     except Exception as e:
-        print(f"❌ خطأ في الحلقة الرئيسية: {e}")
-        time.sleep(10)
+        print(f"Error: {e}")
+        time.sleep(5)
     
