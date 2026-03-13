@@ -9,16 +9,53 @@ from datetime import datetime
 
 warnings.filterwarnings('ignore')
 
+# --- الإعدادات ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
 CHAT_ID = '6424409099'
 
+# قائمة أشهر 400 عملة رقمية مقابل USDT
+SYMBOLS_LIST = [
+    'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'MATICUSDT', 'LTCUSDT',
+    'SHIBUSDT', 'TRXUSDT', 'AVAXUSDT', 'UNIUSDT', 'LINKUSDT', 'ATOMUSDT', 'ETCUSDT', 'XLMUSDT', 'BCHUSDT', 'ALGOUSDT',
+    'VETUSDT', 'MANAUSDT', 'SANDUSDT', 'HBARUSDT', 'ICPUSDT', 'FILUSDT', 'EGLDUSDT', 'NEARUSDT', 'APEUSDT', 'QNTUSDT',
+    'LUNCUSDT', 'FTMUSDT', 'GRTUSDT', 'THETAUSDT', 'AXSUSDT', 'EOSUSDT', 'FLOWUSDT', 'AAVEUSDT', 'CHZUSDT', 'KCSUSDT',
+    'MKRUSDT', 'ZECUSDT', 'XMRUSDT', 'IOTAUSDT', 'NEOUSDT', 'CRVUSDT', 'RUNEUSDT', 'DASHUSDT', 'KAVAUSDT', 'ENJUSDT',
+    'LRCUSDT', 'BATUSDT', 'CELOUSDT', 'ZILUSDT', 'GALAUSDT', 'MINAUSDT', 'STXUSDT', 'COMPUSDT', 'GMTUSDT', 'ANKRUSDT',
+    'HOTUSDT', 'QTUMUSDT', 'KSMUSDT', '1INCHUSDT', 'OMGUSDT', 'ZRXUSDT', 'RVNUSDT', 'IOTXUSDT', 'GLMRUSDT', 'WAVESUSDT',
+    'ONEUSDT', 'ROSEUSDT', 'KNCUSDT', 'AUDIOUSDT', 'KDAUSDT', 'SKLUSDT', 'MASKUSDT', 'SXPUSDT', 'YFIUSDT', 'BANDUSDT',
+    'ICXUSDT', 'SUSHIUSDT', 'JASMYUSDT', 'WOOUSDT', 'CHRUSDT', 'SCRTUSDT', 'WAXPUSDT', 'DYDXUSDT', 'ONTUSDT', 'FLOKIUSDT',
+    'PEPEUSDT', 'ARBUSDT', 'OPUSDT', 'APTUSDT', 'SUIUSDT', 'LDOUSDT', 'ORDIUSDT', 'TIAUSDT', 'SEIUSDT', 'INJUSDT',
+    'IMXUSDT', 'RNDRUSDT', 'FETUSDT', 'AGIXUSDT', 'OCEANUSDT', 'CFXUSDT', 'STGUSDT', 'HOOKUSDT', 'MAGICUSDT', 'GNSUSDT',
+    'JOEUSDT', 'IDUSDT', 'LQTYUSDT', 'GMXUSDT', 'PENDLEUSDT', 'RDNTUSDT', 'FLRUSDT', 'COREUSDT', 'KASUSDT', 'BEAMUSDT',
+    'PYTHUSDT', 'JTOUSDT', 'BONKUSDT', 'MEMEUSDT', 'WLDUSDT', 'ARKMUSDT', 'MAVIAUSDT', 'STRKUSDT', 'AXLUSDT',
+    'PORTALUSDT', 'METISUSDT', 'AEVOUSDT', 'ETHFIUSDT', 'BOMEUSDT', 'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TNSRUSDT', 'TAOUSDT',
+    'OMNIUSDT', 'REZUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'LISTAUSDT', 'ZKUSDT', 'RENDERUSDT', 'BANANAUSDT', 'DOGSUSDT',
+    'TURBOUSDT', 'POPCATUSDT', 'MEWUSDT', 'BRETTUSDT', 'MOGUSDT', 'NEIROUSDT', 'BABYDOGEUSDT', 'HMSTRUSDT', 'CATIUSDT',
+    'EIGENUSDT', 'SCRUSDT', 'GOATUSDT', 'MOODENGUSDT', 'GRASSUSDT', 'DRIFTUSDT', 'PENGUUSDT', 'TRUMPUSDT', 'VINEUSDT',
+    'SUNUSDT', 'RAREUSDT', 'ALPACAUSDT', 'TLMUSDT', 'VOXELUSDT', 'REIUSDT', 'PROMSUSDT', 'OXTUSDT', 'VIDTUSDT', 'DOCKUSDT',
+    'KEYUSDT', 'DEGOUSDT', 'HARDUSDT', 'RIFUSDT', 'FORTHUSDT', 'BURGERUSDT', 'SLPUSDT', 'BAKEUSDT', 'SYSUSDT', 'CKBUSDT',
+    'DENTUSDT', 'TKOUSDT', 'LINAUSDT', 'PERPUSDT', 'STRAXUSDT', 'ALPHAUSDT', 'CTSIUSDT', 'OGNUSDT', 'BELUSDT', 'ARPAUSDT',
+    'MTLUSDT', 'DGBUSDT', 'DUSKUSDT', 'COSUSDT', 'NKNUSDT', 'TFUELUSDT', 'SCUSDT', 'LSKUSDT', 'RENUSDT', 'RLCUSDT',
+    'LTOUSDT', 'MFTUSDT', 'ATAUSDT', 'MLNUSDT', 'QUICKUSDT', 'POLSUSDT', 'FARMUSDT', 'REQUSDT', 'GTCUSDT',
+    'CLVUSDT', 'MBOXUSDT', 'ORNUSDT', 'UTKUSDT', 'STMXUSDT', 'DEXEUSDT', 'FRONTUSDT', 'TRUUSDT', 'PONDFUSDT', 'TWTUSDT',
+    'SUPERUSDT', 'BADGERUSDT', 'FISUSDT', 'MDXUSDT', 'PROSUSDT', 'VTHOUSDT', 'PUNDIXUSDT', 'LPTUSDT', 'FORUSDT', 'AKROUSDT',
+    'POLUSDT', 'ELFUSDT', 'CELRUSDT', 'GTOUSDT', 'VIBUSDT', 'AMBUSDT', 'ARKUSDT', 'LOOMUSDT', 'GFTUSDT', 'PHBUSDT',
+    'AGLDUSDT', 'RADUSDT', 'HIGHUSDT', 'GLMUSDT', 'LAZIOUSDT', 'PORTOUSDT', 'SANTOSUSDT', 'DARUSDT', 'BNXUSDT',
+    'MOVRUSDT', 'CITYUSDT', 'ASRUSDT', 'JUVUSDT', 'ACMUSDT', 'ATMUSDT', 'OGUSDT', 'BICOUSDT', 'FLUXUSDT',
+    'PYRUSDT', 'KP3RUSDT', 'QIUSDT', 'BIFIUSDT', 'OOKIUSDT', 'SPELLUSDT', 'USTCUSDT', 'ANCUSDT', 'LEVERUSDT', 'VGXUSDT',
+    'STEEMUSDT', 'STORJUSDT', 'ADXUSDT', 'CVXUSDT', 'PNTUSDT', 'REPUSDT', 'PROMUSDT', 'DREPUSDT', 'TUSDT', 'ASTRUSDT',
+    'ACAUSDT', 'RONINUSDT', 'XNOUSDT', 'BSWUSDT', 'EPXUSDT', 'MOBUSDT', 'NEXOUSDT', 'MDTUSDT', 'DATAUSDT', 'VICUSDT',
+    'STPTUSDT', 'NULSUSDT', 'MBLUSDT', 'QKCUSDT', 'RSRUSDT', 'PSGUSDT', 'BARUSDT', 'ALPINEUSDT'
+]
+
 def send_msg(text):
     try:
-        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
-                      data={'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}, 
-                      timeout=15)
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        payload = {'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
+        response = requests.post(url, data=payload, timeout=15)
+        return response.status_code == 200
     except:
-        pass
+        return False
 
 def get_data(symbol):
     try:
@@ -31,157 +68,91 @@ def get_data(symbol):
         pass
     return None
 
-def get_all_symbols():
-    try:
-        print(" jari jib el amlat min Binance...")
-        response = requests.get('https://api.binance.com/api/v3/exchangeInfo', timeout=30)
-        data = response.json()
-        symbols = [s['symbol'] for s in data['symbols'] if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT']
-        print(f" OK: {len(symbols)} amlat loaded")
-        return sorted(symbols)
-    except:
-        return []
-
-def run_radar(symbols):
+def run_radar():
     print("\n" + "="*70)
-    print(f"ANALYSIS START - {datetime.now().strftime('%H:%M:%S')}")
+    print(f"🚀 بدء المسح الشامل - {datetime.now().strftime('%H:%M:%S')}")
     print("="*70)
-
-    print(f"\nPhase 1: Bitcoin momentum...")
-    btc = get_data('BTCUSDT')
-    if not btc:
-        print(f" ERROR: BTC data not available")
-        print(f"STOP\n")
-        return
-        
-    ema50 = btc['Close'].ewm(span=50, adjust=False).mean()
-    btc_price = btc['Close'].iloc[-1]
-    btc_ema = ema50.iloc[-1]
     
-    if btc_price <= btc_ema:
-        print(f" DOWN: Price {btc_price:.0f} < EMA {btc_ema:.0f}")
-        print(f" Market is DOWN - stopping")
-        print(f"STOP\n")
-        return
-        
-    print(f" UP: Price {btc_price:.0f} > EMA {btc_ema:.0f}")
-    print(f" Continue scanning...")
-
-    print(f"\nPhase 2: Liquidity filter (min 200k USD)...")
-    qualified = []
-    for idx, s in enumerate(symbols, 1):
-        try:
-            df = get_data(s)
-            if df is not None:
-                vol = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-                if vol >= 200000:
-                    qualified.append(s)
-        except:
-            pass
-            
-        if idx % 50 == 0:
-            pct = 100*idx//len(symbols)
-            print(f" Progress: {idx}/{len(symbols)} ({pct}%)")
-            
-    time.sleep(0.02)
-    print(f" OK: {len(qualified)} coins qualified")
-
-    if not qualified:
-        print(f" No coins found")
-        print(f"STOP\n")
+    btc = get_data('BTCUSDT')
+    if btc is None:
+        print(f"❌ تعذر جلب بيانات BTC.")
         return
 
-    print(f"\nPhase 3: Technical Analysis (MACD + Ichimoku)...")
+    ema50 = btc['Close'].ewm(span=50, adjust=False).mean()
+    if btc['Close'].iloc[-1] <= ema50.iloc[-1]:
+        print(f"📉 البيتكوين تحت EMA50. توقف المسح.")
+        return
+    
+    print(f"📈 البيتكوين صاعد. فحص العملات البديلة...")
+
     found = 0
-    for idx, s in enumerate(qualified, 1):
+    for idx, s in enumerate(SYMBOLS_LIST, 1):
         try:
             df = get_data(s)
             if df is None: continue
             
-            macd = df.ta.macd(signal_indicators=True)
+            vol_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
+            if vol_usd < 150000: continue
+            
+            macd = df.ta.macd()
             ichimoku = df.ta.ichimoku()
             
-            if macd is None or macd.empty: continue
-            if not ichimoku or len(ichimoku[0]) == 0: continue
-            
-            # --- تم التعديل هنا: استخدام الشمعة المقفلة [-2] والتي قبلها [-3] ---
-            cp = df['Close'].iloc[-2]
-            isa = ichimoku[0]['ISA_9'].iloc[-2]
-            isb = ichimoku[0]['ISB_26'].iloc[-2]
-            
-            signal_macd = macd.iloc[-2, 0] > macd.iloc[-2, 1]
-            signal_cloud = (cp > isa) and (cp > isb)
+            if macd is None or ichimoku is None: continue
 
-            cp_prev = df['Close'].iloc[-3]
-            isa_prev = ichimoku[0]['ISA_9'].iloc[-3]
-            isb_prev = ichimoku[0]['ISB_26'].iloc[-3]
+            # تعريف البيانات للشمعة الحالية المقفلة (index -1) والشمعة التي قبلها (index -2)
+            cp_now = df['Close'].iloc[-1]
+            isa_now = ichimoku[0]['ISA_9'].iloc[-1]
+            isb_now = ichimoku[0]['ISB_26'].iloc[-1]
+            macd_val_now = macd.iloc[-1, 0]
+            signal_val_now = macd.iloc[-1, 1]
+
+            cp_prev = df['Close'].iloc[-2]
+            isa_prev = ichimoku[0]['ISA_9'].iloc[-2]
+            isb_prev = ichimoku[0]['ISB_26'].iloc[-2]
+            macd_val_prev = macd.iloc[-2, 0]
+            signal_val_prev = macd.iloc[-2, 1]
+
+            # منطق الاستراتيجية للشمعة المقفلة الحالية
+            cond_now = (macd_val_now > signal_val_now) and (cp_now > isa_now) and (cp_now > isb_now)
             
-            signal_macd_prev = macd.iloc[-3, 0] > macd.iloc[-3, 1]
-            signal_cloud_prev = (cp_prev > isa_prev) and (cp_prev > isb_prev)
-            
-            # الشرط: الإشارة تحققت في الشمعة المقفلة ولم تكن متحققة في التي قبلها
-            if (signal_macd and signal_cloud) and not (signal_macd_prev and signal_cloud_prev):
-                vol_usd = df['Volume'].iloc[-2] * cp
-                print(f" SIGNAL: {s} | Price: ${cp:.4f} | Vol: ${vol_usd:,.0f}")
-                send_msg(f"SIGNAL: {s}\nPrice: ${cp:.4f}\nVolume: ${vol_usd:,.0f}")
+            # منطق الاستراتيجية للشمعة السابقة (يجب أن يكون خطأ لضمان أن الإشارة بدأت الآن)
+            cond_prev = (macd_val_prev > signal_val_prev) and (cp_prev > isa_prev) and (cp_prev > isb_prev)
+
+            # إشارة الشراء: تحقق الشرط الآن ولم يكن متحققاً في الشمعة السابقة
+            if cond_now and not cond_prev:
+                msg = f"✅ *إشارة شراء جديدة (ولادة إشارة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n📊 سيولة الشمعة: ${vol_usd:,.0f}\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
+                send_msg(msg)
+                print(f"✨ إشارة جديدة: {s}")
                 found += 1
-            # --- نهاية التعديل ---
-
         except:
             pass
-            
-        if idx % 20 == 0:
-            pct = 100*idx//len(qualified)
-            print(f" Progress: {idx}/{len(qualified)} ({pct}%) | Signals: {found}")
-            
-    time.sleep(0.05)
-    
-    print(f"\n{'='*70}")
-    print(f"ANALYSIS COMPLETE")
-    print(f"{'='*70}")
-    print(f"Summary:")
-    print(f" Total symbols: {len(symbols)}")
-    print(f" Qualified: {len(qualified)}")
-    print(f" Signals: {found}")
-    
-    if found > 0:
-        pct = 100*found//len(qualified)
-        print(f" Success rate: {pct}%")
-    print(f"{'='*70}\n")
+        
+        if idx % 50 == 0:
+            print(f"⏳ فحص {idx}/{len(SYMBOLS_LIST)}...")
 
+    print(f"\n✅ اكتمل المسح. الإشارات الجديدة: {found}")
+    print("="*70)
+
+# التشغيل
 print("\n" + "="*70)
-print("CRYPTO BOT - AUTOMATIC SIGNAL DETECTOR")
+print("🤖 بوت صيد العملات (فلتر التقاطع الصاعد)")
 print("="*70)
 
-symbols = get_all_symbols()
-if not symbols:
-    print("ERROR: Failed to load symbols!")
-    exit()
+start_txt = f"🚀 *تم تشغيل البوت بنجاح!*\n🔍 يراقب: 400 عملة\n⚙️ الاستراتيجية: دخول عند أول شمعة اختراق فقط."
+send_msg(start_txt)
 
-send_msg(f"BOT ACTIVE\nSymbols: {len(symbols)}")
-print(f"BOT READY")
-print(f" Symbols: {len(symbols)}")
-print(f" Scan at: minutes 00 and 30")
-print("="*70)
+run_radar()
 
-last_pulse = -1
+last_min = -1
 while True:
     try:
         now = datetime.now()
-        minute = now.minute
-        
-        if minute % 5 == 0 and minute != last_pulse:
-            last_pulse = minute
-            print(f"\nPulse: {now.strftime('%H:%M:%S')} - Bot running")
-            
-        if minute in [0, 30]:
-            run_radar(symbols)
-            time.sleep(1)
-            
-    except KeyboardInterrupt:
-        print("\n\nBOT STOPPED")
-        break
+        if now.minute in [0, 30] and now.minute != last_min:
+            run_radar()
+            last_min = now.minute
+        if now.minute % 10 == 0 and now.second == 0:
+            print(f"🕒 نبض النظام: {now.strftime('%H:%M')} - مراقبة مستمرة")
+        time.sleep(1)
     except Exception as e:
-        print(f"Error: {e}")
-        time.sleep(5)
-    
+        time.sleep(10)
+
