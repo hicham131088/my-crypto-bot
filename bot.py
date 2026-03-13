@@ -1,4 +1,4 @@
-import time, requests, pandas pd, pandas_ta as ta, yfinance as yf
+import time, requests, pandas as pd, pandas_ta as ta, yfinance as yf
 from datetime import datetime
 import warnings
 
@@ -52,7 +52,6 @@ def get_full_market_list():
 def run_radar():
     print(f"🚀 [1/4] {datetime.now().strftime('%H:%M')} | بدء المسح الشامل")
     try:
-        # 1. فحص زخم البيتكوين (EMA 50)
         btc = get_data('BTCUSDT')
         if btc.empty or len(btc) < 50: 
             print("❌ بيانات البيتكوين غير مكتملة.")
@@ -65,10 +64,9 @@ def run_radar():
         if curr_btc > l_ema50:
             print(f"✅ زخم صاعد (BTC: {curr_btc:.0f} > EMA: {l_ema50:.0f})")
         else:
-            print(f"🛑 زخم هابط (BTC: {curr_btc:.0f} < EMA: {l_ema50:.0f}). إنهاء المسح.")
+            print(f"🛑 زخم هابط للبيتكوين. إنهاء المسح.")
             return
 
-        # 2. تحليل العملات
         all_symbols = get_full_market_list()
         total_symbols = len(all_symbols)
         found_signals = 0
@@ -84,27 +82,6 @@ def run_radar():
             if not df.empty and len(df) >= 50:
                 df = df.dropna()
                 v_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-                
-                if v_usd >= 200000:
-                    passed_liquidity += 1
-                    try:
-                        m = df.ta.macd()
-                        ic = df.ta.ichimoku()[0]
-                        cp = df['Close'].iloc[-1]
-                        
-                        if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
-                            send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 BTC: صاعد")
-                            found_signals += 1
-                    except: continue
-
-            # طباعة التقدم (تم إصلاح المسافات هنا بدقة)
-            if processed_count % 20 == 0 or processed_count == total_symbols:
-                percentage = (processed_count / total_symbols) * 100
-                print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
-            
-            time.sleep(0.05)
-
-        print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
     except Exception as e:
         print(f"⚠️ خطأ عام: {e}")
 
