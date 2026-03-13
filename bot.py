@@ -39,6 +39,47 @@ def get_all_symbols():
         symbols = [s['symbol'] for s in data['symbols'] 
                    if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT']
         print(f"   OK: {len(symbols)} amlat loaded")
+# -*- coding: utf-8 -*-
+import time
+import requests
+import pandas as pd
+import pandas_ta as ta
+import yfinance as yf
+import warnings
+from datetime import datetime
+
+warnings.filterwarnings('ignore')
+
+TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
+CHAT_ID = '6424409099'
+
+def send_msg(text):
+    try:
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
+                      data={'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}, 
+                      timeout=15)
+    except:
+        pass
+
+def get_data(symbol):
+    try:
+        yf_symbol = symbol.replace('USDT', '-USD')
+        ticker = yf.Ticker(yf_symbol)
+        df = ticker.history(period="5d", interval="30m")
+        if not df.empty and len(df) >= 50:
+            return df
+    except:
+        pass
+    return None
+
+def get_all_symbols():
+    try:
+        print("   jari jib el amlat min Binance...")
+        response = requests.get('https://api.binance.com/api/v3/exchangeInfo', timeout=30)
+        data = response.json()
+        symbols = [s['symbol'] for s in data['symbols'] 
+                   if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT']
+        print(f"   OK: {len(symbols)} amlat loaded")
         return sorted(symbols)
     except:
         return []
@@ -132,6 +173,72 @@ def run_radar(symbols):
     print(f"Summary:")
     print(f"  Total symbols: {len(symbols)}")
     print(f"  Qualified: {len(qualified)}")
+    print(f"  Signals: {found}")
+    if found > 0:
+        pct = 100*found//len(qualified)
+        print(f"  Success rate: {pct}%")
+    print(f"{'='*70}\n")
+
+print("\n" + "="*70)
+print("CRYPTO BOT - AUTOMATIC SIGNAL DETECTOR")
+print("="*70)
+
+symbols = get_all_symbols()
+if not symbols:
+    print("ERROR: Failed to load symbols!")
+    exit()
+
+send_msg(f"BOT ACTIVE\nSymbols: {len(symbols)}")
+print(f"BOT READY")
+print(f"  Symbols: {len(symbols)}")
+print(f"  Scan at: minutes 00 and 30")
+print("="*70)
+
+last_pulse = -1
+while True:
+    try:
+        now = datetime.now()
+        minute = now.minute
+        
+        if minute % 5 == 0 and minute != last_pulse:
+            last_pulse = minute
+            print(f"\nPulse: {now.strftime('%H:%M:%S')} - Bot running")
+            
+            if minute in [0, 30]:
+                run_radar(symbols)
+        
+        time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n\nBOT STOPPED")
+        break
+    except Exception as e:
+        print(f"Error: {e}")
+        time.sleep(5)        return sorted(symbols)
+    except:
+        return []
+
+def run_radar(symbols):
+    print("\n" + "="*70)
+    print(f"ANALYSIS START - {datetime.now().strftime('%H:%M:%S')}")
+    print("="*70)
+    
+    print(f"\nPhase 1: Bitcoin momentum...")
+    btc = get_data('BTCUSDT')
+    if not btc:
+        print(f"   ERROR: BTC data not available")
+        print(f"STOP\n")
+        return
+    
+    ema50 = btc['Close'].ewm(span=50, adjust=False).mean()
+    btc_price = btc['Close'].iloc[-1]
+    btc_ema = ema50.iloc[-1]
+    
+    if btc_price <= btc_ema:
+        print(f"   DOWN: Price {btc_price:.0f} < EMA {btc_ema:.0f}")
+        print(f"   Market is DOWN - stopping")
+        print(f"STOP\n")
+        return
+    
     print(f"  Signals: {found}")
     if found > 0:
         pct = 100*found//len(qualified)
