@@ -159,4 +159,58 @@ while True:
         break
     except Exception as e:
         print(f"⚠️ {e}")
+        time.sleep(5)            if (len(macd) > 0 and 
+                macd.iloc[-1, 0] > macd.iloc[-1, 1] and 
+                cp > isa and cp > isb):
+                
+                vol_usd = df['Volume'].iloc[-1] * cp
+                print(f"   ✅ {s} | ${cp:.4f} | ${vol_usd:,.0f}")
+                send_msg(f"🚀 **{s}**\n💰 ${cp:.4f}\n📊 ${vol_usd:,.0f}")
+                found += 1
+        except:
+            pass
+        
+        if idx % 20 == 0:
+            print(f"   ⏳ {idx}/{len(qualified)} ({100*idx//len(qualified)}%) | إشارات: {found}")
+        time.sleep(0.05)
+    
+    print(f"\n{'='*70}")
+    print(f"✅ انتهى التحليل")
+    print(f"{'='*70}")
+    print(f"📌 النتائج: {len(qualified)} عملة | {found} إشارة")
+    print(f"{'='*70}\n")
+
+# البدء
+print("\n" + "="*70)
+print("📡 البوت جاهز للعمل")
+print("="*70)
+
+symbols = get_all_symbols()
+if not symbols:
+    print("❌ فشل في جلب العملات!")
+    exit()
+
+send_msg(f"📡 *البوت نشِط* ✅\n*عملات: {len(symbols)}*")
+print(f"⏰ المسح: دقائق 00 و 30")
+print("="*70)
+
+last_pulse = -1
+while True:
+    try:
+        now = datetime.now()
+        minute = now.minute
+        
+        if minute % 5 == 0 and minute != last_pulse:
+            last_pulse = minute
+            print(f"\n🔔 {now.strftime('%H:%M:%S')} - البوت يعمل")
+            
+            if minute in [0, 30]:
+                run_radar(symbols)
+        
+        time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n🛑 توقف")
+        break
+    except Exception as e:
+        print(f"⚠️ {e}")
         time.sleep(5)
