@@ -179,4 +179,3 @@ while True:
     except Exception as e:
         print(f"⚠️ خطأ غير متوقع: {e}")
         time.sleep(10)
-    
