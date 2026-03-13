@@ -31,17 +31,15 @@ def get_data(symbol):
     return None
 
 def get_all_symbols():
-    """جلب جميع العملات من Binance"""
     try:
-        print("   ⏳ جاري جلب العملات من Binance...")
+        print("   ⏳ جاري جلب قائمة العملات من Binance...")
         response = requests.get('https://api.binance.com/api/v3/exchangeInfo', timeout=30)
         data = response.json()
         symbols = [s['symbol'] for s in data['symbols'] 
                    if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT']
-        print(f"   ✅ تم جلب {len(symbols)} عملة")
+        print(f"   ✅ تم تحميل {len(symbols)} عملة")
         return sorted(symbols)
-    except Exception as e:
-        print(f"   ❌ خطأ: {e}")
+    except:
         return []
 
 def run_radar(symbols):
@@ -49,24 +47,27 @@ def run_radar(symbols):
     print(f"📊 بدء التحليل - {datetime.now().strftime('%H:%M:%S')}")
     print("="*70)
     
-    # مرحلة 1: البيتكوين
-    print(f"\n📈 [مرحلة 1] فحص البيتكوين...")
+    print(f"\n📈 [مرحلة 1] فحص البيتكوين (الزخم)...")
     btc = get_data('BTCUSDT')
     if not btc:
-        print(f"   ❌ بيانات BTC غير متاحة")
+        print(f"   ❌ خطأ: بيانات البيتكوين غير متاحة")
         print(f"✋ انهاء التحليل\n")
         return
     
     ema50 = btc['Close'].ewm(span=50, adjust=False).mean()
-    if btc['Close'].iloc[-1] <= ema50.iloc[-1]:
-        print(f"   ❌ السوق هابط - لا مسح الآن")
+    btc_price = btc['Close'].iloc[-1]
+    btc_ema = ema50.iloc[-1]
+    
+    if btc_price <= btc_ema:
+        print(f"   ❌ هابط: السعر ${btc_price:,.0f} < المتوسط ${btc_ema:,.0f}")
+        print(f"   ⛔ السوق هابط - إيقاف المسح")
         print(f"✋ انهاء التحليل\n")
         return
     
-    print(f"   ✅ الزخم صاعد - متابعة المسح")
+    print(f"   ✅ صاعد: السعر ${btc_price:,.0f} > المتوسط ${btc_ema:,.0f}")
+    print(f"   ▶️ متابعة المسح...")
     
-    # مرحلة 2: السيولة
-    print(f"\n💧 [مرحلة 2] فلترة السيولة...")
+    print(f"\n💧 [مرحلة 2] تحليل السيولة (الحد الأدنى 200 ألف دولار)...")
     qualified = []
     for idx, s in enumerate(symbols, 1):
         try:
@@ -78,16 +79,17 @@ def run_radar(symbols):
         except:
             pass
         if idx % 50 == 0:
-            print(f"   📊 {idx}/{len(symbols)} ({100*idx//len(symbols)}%)")
+            pct = 100*idx//len(symbols)
+            print(f"   📊 التقدم: {idx}/{len(symbols)} ({pct}%)")
         time.sleep(0.02)
     
     print(f"   ✅ عملات مؤهلة: {len(qualified)}")
     if not qualified:
+        print(f"   ⚠️ لم نجد أي عملات تحقق معايير السيولة")
         print(f"✋ انهاء التحليل\n")
         return
     
-    # مرحلة 3: التحليل الفني
-    print(f"\n🔬 [مرحلة 3] التحليل الفني...")
+    print(f"\n🔬 [مرحلة 3] التحليل الفني (MACD + Ichimoku)...")
     found = 0
     for idx, s in enumerate(qualified, 1):
         try:
@@ -98,14 +100,85 @@ def run_radar(symbols):
             macd = df.ta.macd(signal_indicators=True)
             ichimoku = df.ta.ichimoku()
             
-            if macd is None or macd.empty or not ichimoku or len(ichimoku[0]) == 0:
+            if macd is None or macd.empty:
+                continue
+            if not ichimoku or len(ichimoku[0]) == 0:
                 continue
             
             cp = df['Close'].iloc[-1]
             isa = ichimoku[0]['ISA_9'].iloc[-1]
             isb = ichimoku[0]['ISB_26'].iloc[-1]
             
-            if (len(macd) > 0 and 
+            signal_macd = macd.iloc[-1, 0] > macd.iloc[-1, 1]
+            signal_cloud = cp > isa and cp > isb
+            
+            if signal_macd and signal_cloud:
+                vol_usd = df['Volume'].iloc[-1] * cp
+                print(f"   ✅ إشارة: {s} | السعر: ${cp:.4f} | الحجم: ${vol_usd:,.0f}")
+                send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: ${cp:.4f}\n📊 الحجم: ${vol_usd:,.0f}\n✅ إشارة قوية صاعدة")
+                found += 1
+        except:
+            pass
+        
+        if idx % 20 == 0:
+            pct = 100*idx//len(qualified)
+            print(f"   ⏳ التقدم: {idx}/{len(qualified)} ({pct}%) | الإشارات: {found}")
+        time.sleep(0.05)
+    
+    print(f"\n{'='*70}")
+    print(f"✅ انتهى التحليل")
+    print(f"{'='*70}")
+    print(f"📌 ملخص النتائج:")
+    print(f"   • إجمالي العملات: {len(symbols)}")
+    print(f"   • العملات المفحوصة: {len(qualified)}")
+    print(f"   • الإشارات المكتشفة: {found}")
+    if found > 0:
+        pct = 100*found//len(qualified)
+        print(f"   • نسبة النجاح: {pct}%")
+    else:
+        print(f"   ⚠️ لم يتم العثور على إشارات في هذا المسح")
+    print(f"{'='*70}\n")
+
+print("\n" + "="*70)
+print("🤖 بوت التحليل الفني - كاشف الإشارات التلقائي")
+print("="*70)
+
+symbols = get_all_symbols()
+if not symbols:
+    print("❌ خطأ: فشل في تحميل العملات!")
+    exit()
+
+send_msg(f"🤖 *البوت نشِط الآن* ✅\n📊 عدد العملات: {len(symbols)}\n⏰ المسح التالي بعد دقيقتين")
+print(f"\n✅ البوت جاهز للعمل")
+print(f"   • عدد العملات المحملة: {len(symbols)}")
+print(f"   • جدول المسح: الدقيقة 00 و 30 من كل ساعة")
+print(f"   • الحالة: 🟢 جاهز للعمل")
+print("="*70)
+
+last_pulse = -1
+while True:
+    try:
+        now = datetime.now()
+        minute = now.minute
+        
+        # طباعة النبض على الشاشة فقط (بدون Telegram)
+        if minute % 5 == 0 and minute != last_pulse:
+            last_pulse = minute
+            print(f"\n🔔 نبض النظام: {now.strftime('%H:%M:%S')} - البوت يعمل بشكل طبيعي")
+            
+            # تشغيل التحليل في الدقيقة 0 و 30
+            if minute in [0, 30]:
+                run_radar(symbols)
+        
+        time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n\n" + "="*70)
+        print("🛑 تم إيقاف البوت من قبل المستخدم")
+        print("="*70)
+        break
+    except Exception as e:
+        print(f"⚠️ خطأ: {e}")
+        time.sleep(5)            if (len(macd) > 0 and 
                 macd.iloc[-1, 0] > macd.iloc[-1, 1] and 
                 cp > isa and cp > isb):
                 
