@@ -1,5 +1,9 @@
 import time, requests, pandas as pd, pandas_ta as ta, yfinance as yf
 from datetime import datetime
+import warnings
+
+# إسكات التحذيرات لضمان نظافة السجلات
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # --- الإعدادات الأساسية ---
 TOKEN = '7900130533:AAFP7ZYnrdUOEf-8E1rQIKWdgRfD8oJZSuw'
@@ -21,28 +25,28 @@ def get_data(symbol):
     return pd.DataFrame()
 
 def get_full_market_list():
-    # قائمة موسعة تضم 200 عملة من الأهم والأكثر سيولة على بينانس
+    # قائمة 200 عملة تضم الأقوى، الميم، والعملات الجديدة النشطة
     return [
         'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'DOGEUSDT', 'LINKUSDT',
         'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT',
-        'RNDRUSDT', 'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'FILUSDT', 'LDOUSDT', 'ORDIUSDT', 'ICPUSDT',
-        'TRXUSDT', 'ETCUSDT', 'BCHUSDT', 'AAVEUSDT', 'ALGOUSDT', 'EGLDUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT',
-        'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'BEAMUSDT', 'GALAUSDT', 'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT',
-        'MKRUSDT', 'SNXUSDT', 'ENSUSDT', 'CRVUSDT', 'WLDUSDT', 'ARKMUSDT', 'IDUSDT', 'PIXELUSDT', 'STRKUSDT', 'PORTALUSDT',
-        'ENAUSDT', 'WUSDT', 'TNSRUSDT', 'SAGAUSDT', 'TAOUSDT', 'BBUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'LISTAUSDT',
-        'DOGSUSDT', 'ASTRUSDT', 'ANKRUSDT', 'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ATAUSDT', 'ARKUSDT',
-        'ARUSDT', 'ACHUSDT', 'AUCTIONUSDT', 'BADGERUSDT', 'BAKEDUSDT', 'BALUSDT', 'BANDUSDT', 'BATUSDT', 'BELUSDT', 'BICOUSDT',
-        'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'BSVUSDT', 'C98USDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT', 'CKBUSDT', 'COMBOUSDT',
-        'COMPUSDT', 'COTIUSDT', 'CTSIUSDT', 'CYBERUSDT', 'DARUSDT', 'DASHUSDT', 'DGBUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT',
-        'ENJUSDT', 'EOSUSDT', 'ETHFIUSDT', 'FDUSDUSDT', 'FLOWUSDT', 'FORTHUSDT', 'FRONTUSDT', 'FTMUSDT', 'FXSUSDT', 'GASUSDT',
-        'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'GNSUSDT', 'HBARUSDT', 'HIGHUSDT', 'HIFIUSDT', 'HOOKUSDT', 'HOTUSDT', 'IOTAUSDT',
-        'IOTXUSDT', 'JASMYUSDT', 'JOEUSDT', 'KASUSDT', 'KAVAUSDT', 'KNCUSDT', 'KDAUSDT', 'KEYUSDT', 'KLAYUSDT', 'KNSUSDT',
-        'LINAUSDT', 'LPTUSDT', 'LQTYUSDT', 'LRCUSDT', 'LSKUSDT', 'LUMIAUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MAVIAUSDT',
-        'MBOXUSDT', 'METISUSDT', 'MINAUSDT', 'MOVRUSDT', 'MTLUSDT', 'MYROUSDT', 'NFPUSDT', 'NKNUSDT', 'NMRUSDT', 'NTRNUSDT',
-        'OGNUSDT', 'OMGUSDT', 'ONGUSDT', 'ONTUSDT', 'OXTUSDT', 'PAXGUSDT', 'PDAUSDT', 'PERPUSDT', 'PHBUSDT', 'PNUTUSDT',
-        'POLYXUSDT', 'POWRUSDT', 'PROMSUSDT', 'QNTUSDT', 'QTUMUSDT', 'QUICKUSDT', 'RADUSDT', 'RAREUSDT', 'RAYUSDT', 'REEFUSDT',
-        'REIUSDT', 'REQUSDT', 'RIFUSDT', 'RLCUSDT', 'RONINUSDT', 'ROSEUSDT', 'RPLUSDT', 'RSRUSDT', 'RUNEUSDT', 'RVNUSDT',
-        'SCRUSDT', 'SKLUSDT', 'SLPUSDT', 'SFPUSDT', 'SPELLUSDT', 'STEEMUSDT', 'STGUSDT', 'STORJUSDT', 'SUNUSDT', 'SXPUSDT'
+        'PEPEUSDT', 'FLOKIUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT', 'ORDIUSDT', 'ICPUSDT', 'TRXUSDT', 'ETCUSDT', 'BCHUSDT',
+        'AAVEUSDT', 'ALGOUSDT', 'SANDUSDT', 'MANAUSDT', 'ATOMUSDT', 'VETUSDT', 'IMXUSDT', 'GRTUSDT', 'SEIUSDT', 'GALAUSDT',
+        'JUPUSDT', 'PYTHUSDT', 'DYMUSDT', 'PENDLEUSDT', 'AXSUSDT', 'MKRUSDT', 'SNXUSDT', 'WLDUSDT', 'ARKMUSDT', 'STRKUSDT',
+        'ENAUSDT', 'WUSDT', 'SAGAUSDT', 'TAOUSDT', 'NOTUSDT', 'IOUSDT', 'ZROUSDT', 'DOGSUSDT', 'ASTRUSDT', 'ANKRUSDT',
+        'AGLDUSDT', 'ACEUSDT', 'ALTUSDT', 'AIUSDT', 'API3USDT', 'ARKUSDT', 'ARUSDT', 'AUCTIONUSDT', 'BADGERUSDT', 'BALUSDT',
+        'BATUSDT', 'BELUSDT', 'BICOUSDT', 'BLZUSDT', 'BNXUSDT', 'BONKUSDT', 'CELOUSDT', 'CFXUSDT', 'CHZUSDT', 'CKBUSDT',
+        'COMPUSDT', 'COTIUSDT', 'CYBERUSDT', 'DASHUSDT', 'DYDXUSDT', 'EDUUSDT', 'EGLDUSDT', 'ENJUSDT', 'EOSUSDT', 'ETHFIUSDT',
+        'FTMUSDT', 'GLMUSDT', 'GMTUSDT', 'GMXUSDT', 'HBARUSDT', 'HIGHUSDT', 'HOOKUSDT', 'IOTAUSDT', 'IOTXUSDT', 'JASMYUSDT',
+        'KAVAUSDT', 'KNCUSDT', 'LPTUSDT', 'LRCUSDT', 'MAGICUSDT', 'MANTAUSDT', 'MASKUSDT', 'MINAUSDT', 'MOVRUSDT', 'MYROUSDT',
+        'NFPUSDT', 'NTRNUSDT', 'OGNUSDT', 'ONTUSDT', 'PHBUSDT', 'PNUTUSDT', 'POLYXUSDT', 'POWRUSDT', 'QNTUSDT', 'QTUMUSDT',
+        'RAYUSDT', 'REEFUSDT', 'RIFUSDT', 'RLCUSDT', 'ROSEUSDT', 'RUNEUSDT', 'RVNUSDT', 'SKLUSDT', 'SXPUSDT', 'THETAUSDT',
+        'TRBUSDT', 'UMAUSDT', 'VTHOUSDT', 'WAXPUSDT', 'WIFUSDT', 'WOOUSDT', 'XLMUSDT', 'XTZUSDT', 'YFIUSDT', 'ZECUSDT',
+        'ZENUSDT', 'ZILUSDT', 'ZRXUSDT', '1INCHUSDT', 'AERGOUSDT', 'ALICEUSDT', 'ALPACAUSDT', 'ALPHAUSDT', 'AMBUSDT', 'APEUSDT',
+        'ARDRUSDT', 'ASRUSDT', 'ATMUSDT', 'AUDIOUSDT', 'AVAUSDT', 'BAKEUSDT', 'BARUSDT', 'BDPUSDT', 'BETAUSDT', 'BIFIUSDT',
+        'BONDUSDT', 'BSWUSDT', 'BURGERUSDT', 'C98USDT', 'CITYUSDT', 'CLVUSDT', 'CTKUSDT', 'CTSIUSDT', 'CVXUSDT', 'DENTUSDT',
+        'DOCKUSDT', 'DUSKUSDT', 'EPXUSDT', 'ERNUSDT', 'FARMUSDT', 'FIDAUSDT', 'FISUSDT', 'GNSUSDT', 'LINAUSDT', 'LQTYUSDT',
+        'MBOXUSDT', 'METISUSDT', 'MTLUSDT', 'NKNUSDT', 'NMRUSDT', 'OGUSDT', 'OMGUSDT', 'ONGUSDT', 'OXTUSDT', 'PDAUSDT',
+        'PERPUSDT', 'POLSUSDT', 'PONDUSDT', 'PSGUSDT', 'PUNDIXUSDT', 'PYRUSDT', 'QIUSDT', 'RADUSDT', 'REIUSDT', 'REQUSDT'
     ]
 
 def run_radar():
@@ -61,7 +65,7 @@ def run_radar():
         if curr_btc > l_ema50:
             print(f"✅ زخم صاعد (BTC: {curr_btc:.0f} > EMA: {l_ema50:.0f})")
         else:
-            print(f"🛑 زخم هابط (BTC: {curr_btc:.0f} < EMA: {l_ema50:.0f}). إنهاء المسح.")
+            print(f"🛑 زخم هابط للبيتكوين. إنهاء المسح.")
             return
 
         # 2. تحليل العملات مع عداد التقدم
@@ -86,7 +90,7 @@ def run_radar():
                     passed_liquidity += 1
                     try:
                         m = df.ta.macd()
-                        ic = df.ta.ichimoku()[0] # استخدام التلقائي لتجنب التحذير
+                        ic = df.ta.ichimoku()[0]
                         cp = df['Close'].iloc[-1]
                         
                         # شرط الاستراتيجية
@@ -95,16 +99,29 @@ def run_radar():
                             found_signals += 1
                     except: continue
 
-            # طباعة نسبة التقدم كل 20 عملة لتجنب ازدحام السجلات
+            # طباعة نسبة التقدم كل 20 عملة
             if processed_count % 20 == 0 or processed_count == total_symbols:
                 percentage = (processed_count / total_symbols) * 100
                 print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
             
-            time.sleep(0.05) # تسريع الفحص قليلاً
+            time.sleep(0.05)
 
-        print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
+        print(f"🏁 اكتمل المسح: {found_signals} إشارة.")
     except Exception as e:
         print(f"⚠️ خطأ عام: {e}")
+
+# رسالة البدء - ستصلك فوراً عند تشغيل البوت
+send_msg("📡 رادار الـ 200 عملة يعمل الآن بنظام الـ EMA 50.")
+
+last_pulse = -1
+while True:
+    now = datetime.now()
+    if now.minute % 5 == 0 and now.minute != last_pulse:
+        print(f"🕒 نبض السيرفر: {now.strftime('%H:%M')}")
+        last_pulse = now.minute
+        if now.minute in [0, 30]:
+            run_radar()
+    time.sleep(1)
 
 # رسالة البدء
 send_msg("📡 رادار الـ 200 عملة يعمل الآن بنظام الـ EMA 50.")
