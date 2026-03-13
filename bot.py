@@ -1,4 +1,4 @@
-import time, requests, pandas as pd, pandas_ta as ta, yfinance as yf
+import time, requests, pandas pd, pandas_ta as ta, yfinance as yf
 from datetime import datetime
 import warnings
 
@@ -25,7 +25,7 @@ def get_data(symbol):
     return pd.DataFrame()
 
 def get_full_market_list():
-    # قائمة بـ 200 من أقوى وأحدث عملات بينانس (بما في ذلك الميم والسيولة العالية)
+    # قائمة 200 عملة تضم الأقوى، الميم، والعملات الجديدة النشطة
     return [
         'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'DOGEUSDT', 'LINKUSDT',
         'SHIBUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'OPUSDT', 'ARBUSDT', 'SUIUSDT', 'FETUSDT',
@@ -68,7 +68,7 @@ def run_radar():
             print(f"🛑 زخم هابط (BTC: {curr_btc:.0f} < EMA: {l_ema50:.0f}). إنهاء المسح.")
             return
 
-        # 2. تحليل العملات مع عداد التقدم
+        # 2. تحليل العملات
         all_symbols = get_full_market_list()
         total_symbols = len(all_symbols)
         found_signals = 0
@@ -83,28 +83,43 @@ def run_radar():
             
             if not df.empty and len(df) >= 50:
                 df = df.dropna()
-                
-                # فحص السيولة (200 ألف دولار)
                 v_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
+                
                 if v_usd >= 200000:
                     passed_liquidity += 1
                     try:
                         m = df.ta.macd()
-                        ic = df.ta.ichimoku()[0] # استخدام التلقائي لتجنب التحذير
+                        ic = df.ta.ichimoku()[0]
                         cp = df['Close'].iloc[-1]
                         
-                        # شرط الاستراتيجية
                         if m.iloc[-1][0] > m.iloc[-1][2] and cp > ic['ISA_9'].iloc[-1] and cp > ic['ISB_26'].iloc[-1]:
                             send_msg(f"🚀 **إشارة دخول: {s}**\n💰 السعر: {cp:.4f}\n📈 BTC: صاعد")
                             found_signals += 1
                     except: continue
 
-            # طباعة نسبة التقدم كل 20 عملة لتجنب ازدحام السجلات
+            # طباعة التقدم (تم إصلاح المسافات هنا بدقة)
             if processed_count % 20 == 0 or processed_count == total_symbols:
                 percentage = (processed_count / total_symbols) * 100
                 print(f"📊 التقدم: {percentage:.0f}% ({processed_count}/{total_symbols}) | السيولة: {passed_liquidity} عملة")
             
-            time.sleep(0.05) # تسريع الفحص قليلاً
+            time.sleep(0.05)
+
+        print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
+    except Exception as e:
+        print(f"⚠️ خطأ عام: {e}")
+
+# رسالة البدء
+send_msg("📡 رادار الـ 200 عملة يعمل الآن بنظام الـ EMA 50.")
+
+last_pulse = -1
+while True:
+    now = datetime.now()
+    if now.minute % 5 == 0 and now.minute != last_pulse:
+        print(f"🕒 نبض السيرفر: {now.strftime('%H:%M')}")
+        last_pulse = now.minute
+        if now.minute in [0, 30]:
+            run_radar()
+    time.sleep(1)
 
         print(f"🏁 اكتمل المسح: {found_signals} إشارة | {passed_liquidity} عملة اجتازت السيولة.")
     except Exception as e:
