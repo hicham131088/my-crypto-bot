@@ -91,8 +91,15 @@ def run_radar():
             df = get_data(s)
             if df is None: continue
             
-            vol_usd = df['Volume'].iloc[-1] * df['Close'].iloc[-1]
-            if vol_usd < 150000: continue
+            # --- التعديل الأول: فلتر السيولة الذكي ---
+            vol_usd_series = df['Volume'] * df['Close']
+            current_vol = vol_usd_series.iloc[-1]
+            avg_vol = vol_usd_series.rolling(window=20).mean().iloc[-1]
+            
+            # يتجاوز العملة إذا كانت السيولة أقل من 150 ألف دولار، أو أقل من 120% من متوسط السيولة
+            if current_vol < 150000 or current_vol < (avg_vol * 1.2): 
+                continue
+            # ----------------------------------------
             
             macd = df.ta.macd()
             ichimoku = df.ta.ichimoku()
@@ -124,13 +131,14 @@ def run_radar():
 
             # إشارة الشراء: تحقق الشرط الآن ولم يكن متحققاً في الشمعة السابقة
             if cond_now and not cond_prev:
-                # حساب وقف الخسارة وأخذ الربح
-                sl_price = cp_now - (1 * atr_now)
-                tp_price = cp_now + (2 * atr_now)
-                sl_pct = (atr_now / cp_now) * 100
-                tp_pct = ((2 * atr_now) / cp_now) * 100
+                # --- التعديل الثاني والثالث: تعديل الـ ATR لوقف الخسارة وأخذ الربح ---
+                sl_price = cp_now - (1.2 * atr_now)
+                tp_price = cp_now + (2.4 * atr_now)
+                sl_pct = ((1.2 * atr_now) / cp_now) * 100
+                tp_pct = ((2.4 * atr_now) / cp_now) * 100
+                # -----------------------------------------------------------------
 
-                msg = f"✅ *إشارة شراء جديدة (ولادة إشارة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n🎯 أخذ الربح: ${tp_price:.4f} (+{tp_pct:.2f}%)\n🛑 وقف الخسارة: ${sl_price:.4f} (-{sl_pct:.2f}%)\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
+                msg = f"✅ *إشارة شراء جديدة (انفجار سيولة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n🎯 أخذ الربح: ${tp_price:.4f} (+{tp_pct:.2f}%)\n🛑 وقف الخسارة: ${sl_price:.4f} (-{sl_pct:.2f}%)\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
                 send_msg(msg)
                 print(f"✨ إشارة جديدة: {s}")
                 found += 1
@@ -148,7 +156,7 @@ print("\n" + "="*70)
 print("🤖 بوت صيد العملات (فلتر التقاطع الصاعد)")
 print("="*70)
 
-start_txt = f"🚀 *تم تشغيل البوت بنجاح!*\n🔍 يراقب: 400 عملة\n⚙️ الاستراتيجية: دخول عند أول شمعة اختراق فقط."
+start_txt = f"🚀 *تم تشغيل البوت بنجاح!*\n🔍 يراقب: 400 عملة\n⚙️ الاستراتيجية: إيشيموكو + ماكدي + انفجار سيولة."
 send_msg(start_txt)
 
 run_radar()
@@ -165,4 +173,4 @@ while True:
         time.sleep(1)
     except Exception as e:
         time.sleep(10)
-        
+            
