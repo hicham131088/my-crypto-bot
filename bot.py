@@ -5,6 +5,7 @@ import pandas as pd
 import pandas_ta as ta
 import yfinance as yf
 import warnings
+import json
 from datetime import datetime
 
 warnings.filterwarnings('ignore')
@@ -48,10 +49,23 @@ SYMBOLS_LIST = [
     'STPTUSDT', 'NULSUSDT', 'MBLUSDT', 'QKCUSDT', 'RSRUSDT', 'PSGUSDT', 'BARUSDT', 'ALPINEUSDT'
 ]
 
-def send_msg(text):
+def send_msg(text, symbol=None):
     try:
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
         payload = {'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
+        
+        # --- التعديل الخاص بإضافة الزر ---
+        if symbol:
+            base_coin = symbol.replace('USDT', '')
+            binance_url = f"https://www.binance.com/en/trade/{base_coin}_USDT"
+            keyboard = {
+                "inline_keyboard": [
+                    [{"text": f"📈 افتح {symbol} في بينانس", "url": binance_url}]
+                ]
+            }
+            payload['reply_markup'] = json.dumps(keyboard)
+        # ---------------------------------
+        
         response = requests.post(url, data=payload, timeout=15)
         return response.status_code == 200
     except:
@@ -91,15 +105,13 @@ def run_radar():
             df = get_data(s)
             if df is None: continue
             
-            # --- التعديل الأول: فلتر السيولة الذكي ---
+            # فلتر السيولة الذكي
             vol_usd_series = df['Volume'] * df['Close']
             current_vol = vol_usd_series.iloc[-1]
             avg_vol = vol_usd_series.rolling(window=20).mean().iloc[-1]
             
-            # يتجاوز العملة إذا كانت السيولة أقل من 150 ألف دولار، أو أقل من 120% من متوسط السيولة
             if current_vol < 150000 or current_vol < (avg_vol * 1.2): 
                 continue
-            # ----------------------------------------
             
             macd = df.ta.macd()
             ichimoku = df.ta.ichimoku()
@@ -123,23 +135,25 @@ def run_radar():
             macd_val_prev = macd.iloc[-2, 0]
             signal_val_prev = macd.iloc[-2, 1]
 
-            # منطق الاستراتيجية للشمعة المقفلة الحالية (تمت إضافة شرط الـ RSI هنا)
+            # منطق الاستراتيجية للشمعة المقفلة الحالية
             cond_now = (macd_val_now > signal_val_now) and (cp_now > isa_now) and (cp_now > isb_now) and (rsi_now < 70)
             
-            # منطق الاستراتيجية للشمعة السابقة (يجب أن يكون خطأ لضمان أن الإشارة بدأت الآن)
+            # منطق الاستراتيجية للشمعة السابقة
             cond_prev = (macd_val_prev > signal_val_prev) and (cp_prev > isa_prev) and (cp_prev > isb_prev)
 
-            # إشارة الشراء: تحقق الشرط الآن ولم يكن متحققاً في الشمعة السابقة
+            # إشارة الشراء
             if cond_now and not cond_prev:
-                # --- التعديل الثاني والثالث: تعديل الـ ATR لوقف الخسارة وأخذ الربح ---
                 sl_price = cp_now - (1.2 * atr_now)
                 tp_price = cp_now + (2.4 * atr_now)
                 sl_pct = ((1.2 * atr_now) / cp_now) * 100
                 tp_pct = ((2.4 * atr_now) / cp_now) * 100
-                # -----------------------------------------------------------------
 
                 msg = f"✅ *إشارة شراء جديدة (انفجار سيولة)!*\n\n💎 العملة: #{s}\n💵 السعر: ${cp_now:.4f}\n🎯 أخذ الربح: ${tp_price:.4f} (+{tp_pct:.2f}%)\n🛑 وقف الخسارة: ${sl_price:.4f} (-{sl_pct:.2f}%)\n🕒 وقت الإغلاق: {datetime.now().strftime('%H:%M')}"
-                send_msg(msg)
+                
+                # --- تمرير اسم العملة لظهور الزر المباشر ---
+                send_msg(msg, symbol=s)
+                # ------------------------------------------
+                
                 print(f"✨ إشارة جديدة: {s}")
                 found += 1
         except:
