@@ -23,4 +23,4 @@ COPY . .
 
 # أمر تشغيل البوت 
 # (مهم: إذا كان اسم ملفك الأساسي ليس main.py، قم بتغييره هنا)
-CMD ["python", "main.py"]
+CMD ["python", "crypto_bot_final.py"]
