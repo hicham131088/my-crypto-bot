@@ -1,4 +1,5 @@
-pandas
-pandas-ta
-yfinance
-requests
+requests==2.31.0
+pandas==2.0.3
+pandas-ta==0.3.14
+byfinance==0.2.28python-binance==1.0.17
+python-dotenv==1.0.0
