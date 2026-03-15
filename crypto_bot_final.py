@@ -20,32 +20,44 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
+# ║                        ⚙️ وظيفة تنظيف المتغيرات                           ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+def clean_env_value(key, default=''):
+    """جلب المتغير وحذف أي رموز خفية أو فراغات تسبب خطأ Invalid leading whitespace"""
+    value = os.getenv(key, default)
+    if value:
+        # مسح الفراغات والأسطر الجديدة التي قد تظهر عند النسخ من Railway
+        return value.strip().replace('\n', '').replace('\r', '').replace('\t', '')
+    return default
+
+# ╔════════════════════════════════════════════════════════════════════════════╗
 # ║                        ⚙️  المتغيرات القابلة للتعديل                    ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ بيانات التوصيل ━━━━━━━━━━━━━━━━━━━━━━━━
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN', 'YOUR_TOKEN')
-CHAT_ID = os.getenv('CHAT_ID', 'YOUR_CHAT_ID')
-BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', 'YOUR_KEY')
-BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY', 'YOUR_SECRET')
+TELEGRAM_TOKEN = clean_env_value('TELEGRAM_TOKEN', 'YOUR_TOKEN')
+CHAT_ID = clean_env_value('CHAT_ID', 'YOUR_CHAT_ID')
+BINANCE_API_KEY = clean_env_value('BINANCE_API_KEY', 'YOUR_KEY')
+BINANCE_SECRET_KEY = clean_env_value('BINANCE_SECRET_KEY', 'YOUR_SECRET')
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ إعدادات الشمعات والتوقيت ━━━━━━━━━━━━━━━━━━━━━━━━
 CANDLE_INTERVAL = '30m'              # فترة الشمعة (30 دقيقة)
-SCAN_INTERVAL = 5                    # النبض كل 5 دقائق (التحليل والتداول عند إغلاق الشمعة)
+SCAN_INTERVAL = 5                    # النبض كل 5 دقائق
 NUM_CANDLES = 100                    # عدد الشمعات التاريخية المطلوبة للتحليل
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ إعدادات التداول ━━━━━━━━━━━━━━━━━━━━━━━━
 TRADING_AMOUNT = 10                  # المبلغ بالدولار لكل صفقة
 MIN_WALLET_BALANCE = 5               # الحد الأدنى للعملة في المحفظة (دولار)
 MIN_VOLUME_USD = 150000              # الحد الأدنى لحجم التداول (دولار)
-VOLUME_MULTIPLIER = 1.2              # العملة يجب أن تكون حجمها أعلى من المتوسط بـ X مرة
+VOLUME_MULTIPLIER = 1.2              # معامل حجم التداول
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ إعدادات الاستراتيجية ━━━━━━━━━━━━━━━━━━━━━━━━
-SL_ATR_MULTIPLIER = 1.2              # Stop Loss = سعر الشراء - (1.2 * ATR)
-TP_ATR_MULTIPLIER = 2.4              # Take Profit = سعر الشراء + (2.4 * ATR)
+SL_ATR_MULTIPLIER = 1.2              # Stop Loss
+TP_ATR_MULTIPLIER = 2.4              # Take Profit
 RSI_OVERBOUGHT = 70                  # مستوى التشبع الشرائي
 ENABLE_TRAILING_STOP = True          # تفعيل ملاحقة الربح
-TRAILING_TP_ATR = 2.4                # TP الجديد = آخر TP + (2.4 * ATR)
+TRAILING_TP_ATR = 2.4                # معامل TP الجديد
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ العملات المحظورة ━━━━━━━━━━━━━━━━━━━━━━━━
 BLACKLIST_SYMBOLS = [
@@ -62,6 +74,7 @@ LAST_SIGNAL_FILE = 'last_signals.json'
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
 try:
+    # استخدام المتغيرات النظيفة لضمان الاتصال
     binance_client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
     binance_client.get_account()
     print("✅ تم الاتصال ببينانص بنجاح!")
@@ -486,7 +499,7 @@ def run_scan():
     print(f"💵 رصيد USDT: ${usdt_balance:.2f}")
     
     if usdt_balance < TRADING_AMOUNT:
-        print(f"⚠️  لا يكفي الرصيد! مطلوب ${TRADING_AMOUNT:.2f} وديك ${usdt_balance:.2f} - لن يتم الشراء")
+        print(f"⚠️ لا يكفي الرصيد! مطلوب ${TRADING_AMOUNT:.2f} ولديك ${usdt_balance:.2f} - لن يتم الشراء")
         return
     
     # الخطوة 4: مسح العملات
@@ -571,12 +584,12 @@ if __name__ == "__main__":
 ───────────────────────────────────────────────────────────────────────────────
   🕐 فترة الشمعة: {CANDLE_INTERVAL}
   📊 عدد الشمعات: {NUM_CANDLES}
-  ⏰ النبض: كل {SCAN_INTERVAL} دقائق (التحليل عند إغلاق الشمعة)
+  ⏰ النبض: كل {SCAN_INTERVAL} دقائق
   
 💰 إعدادات التداول:
 ───────────────────────────────────────────────────────────────────────────────
   💵 المبلغ لكل صفقة: ${TRADING_AMOUNT}
-  🔢 الحد الأدنى للعملة: ${MIN_WALLET_BALANCE}
+  🔢 الحد الأدنى للرصيد: ${MIN_WALLET_BALANCE}
   📈 الحد الأدنى للسيولة: ${MIN_VOLUME_USD}
   
 🎯 إعدادات الاستراتيجية:
@@ -584,7 +597,7 @@ if __name__ == "__main__":
   🛑 Stop Loss: {SL_ATR_MULTIPLIER} × ATR
   📈 Take Profit: {TP_ATR_MULTIPLIER} × ATR
   📊 RSI: {RSI_OVERBOUGHT}
-  ⬆️  ملاحقة الربح: {'✅ مفعلة' if ENABLE_TRAILING_STOP else '❌ معطلة'}
+  ⬆️ ملاحقة الربح: {'✅ مفعلة' if ENABLE_TRAILING_STOP else '❌ معطلة'}
 ───────────────────────────────────────────────────────────────────────────────
 """)
     
